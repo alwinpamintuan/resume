@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Pipeline from '../components/Pipeline.astro';
+import ResumeDocument from '../components/ResumeDocument.astro';
+import Signal from '../components/Signal.astro';
+import { loadContent, displayDate, workHref } from '../lib/content';
+const content = loadContent();
+const selected = content.work.filter((item) => item.visible && item.placement === 'selected');
+const other = content.work.filter((item) => item.visible && item.placement === 'other');
+const populated = { experience: content.experience.length, selected: selected.length, other: other.length, expertise: content.expertise.length, principles: content.principles.length, education: content.education.length };
+const sections = content.sections.filter((section) => section.visible && populated[section.id] > 0);
+---
+<Layout content={content}>
+  <main id="main" class="portfolio-main">
+    <section class="hero" id="top" aria-labelledby="intro-title">
+      <div class="hero-title"><p class="eyebrow"><span class="accent-line" aria-hidden="true"></span> {content.profile.title} / Portfolio</p><h1 id="intro-title">{content.profile.name.split(/\s+/).map((part) => <span>{part} </span>)}</h1><p class="intro">{content.profile.summary}</p><div class="hero-actions"><a class="button" href={`/downloads/${content.profile.documentName}.pdf`} download>Download résumé <span aria-hidden="true">↓</span></a><a class="text-link" href="/resume/">View résumé <span aria-hidden="true">↗</span></a></div></div>
+      <div class="hero-summary"><Signal />{content.profile.location && <p class="location">{content.profile.location}</p>}<div class="social-links">{content.profile.links.map((link) => <a href={link.url}>{link.label} <span aria-hidden="true">↗</span></a>)}<a href={`mailto:${content.profile.email}`}>Email <span aria-hidden="true">↗</span></a></div></div>
+    </section>
+    {content.impact.length > 0 && <div class="impact-strip" aria-label="Career highlights">{content.impact.map((item) => <div id={item.id} class="impact-item"><span class="impact-value">{item.value}</span><div><h2>{item.label}</h2><p>{item.context}</p></div></div>)}</div>}
+    {sections.map((section, index) => <section class:list={['resume-section', 'portfolio-section', `section-${section.id}`]} id={section.id} aria-labelledby={`${section.id}-title`}>
+      <div class="section-rail"><h2 id={`${section.id}-title`}>{section.label}</h2><span class="section-number"><span aria-hidden="true">[ </span>{String(index + 1).padStart(2, '0')}<span aria-hidden="true"> ]</span></span></div>
+      <div class="section-content">
+        {section.id === 'experience' && content.experience.map((job) => <article class="experience" id={job.id}><div class="company-heading"><h3>{job.company}</h3>{job.location && <span class="meta">{job.location}</span>}</div><div class="roles">{job.roles.map((role, i) => <div class="role"><div class="role-heading"><h4>{role.title}</h4><span class="meta">{displayDate(role.start)} — {displayDate(role.end)}</span></div>{i === 0 && job.roles.length > 1 && <span class="promotion">Expanded ownership</span>}<p>{role.scope}</p>{role.highlights.length > 0 && <ul>{role.highlights.map((highlight) => <li id={highlight.id}>{highlight.text}</li>)}</ul>}</div>)}</div></article>)}
+        {section.id === 'selected' && selected.map((work, i) => <article class="selected-work" id={work.id}><div class="work-copy"><div class="work-meta"><span class="eyebrow">{work.type}</span><span class="meta">{work.year}</span></div><h3>{workHref(work) ? <a href={workHref(work)}>{work.title}<span aria-hidden="true"> ↗</span></a> : work.title}</h3><p>{work.summary}</p><ul class="tags" aria-label="Technologies">{work.technologies.map((technology) => <li>{technology}</li>)}</ul>{workHref(work) && <a class="text-link" href={workHref(work)}>Explore the work <span aria-hidden="true">→</span></a>}</div>{i === 0 && work.details?.pipeline && <Pipeline pipeline={work.details.pipeline} />}</article>)}
+        {section.id === 'other' && other.map((work) => <article class="other-work" id={work.id}><div><h3>{workHref(work) ? <a href={workHref(work)}>{work.title} <span aria-hidden="true">↗</span></a> : work.title}</h3><p>{work.summary}</p></div><span class="meta">{work.year}</span></article>)}
+        {section.id === 'expertise' && <dl class="expertise">{content.expertise.map((item) => <div><dt>{item.area}</dt><dd>{item.tools.join(' · ')}</dd></div>)}</dl>}
+        {section.id === 'principles' && <div class="principles">{content.principles.map((item) => <article><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>}
+        {section.id === 'education' && content.education.map((item) => <div class="education"><h3>{item.qualification}</h3><p>{item.institution}</p><span class="meta">{item.year}</span></div>)}
+      </div>
+    </section>)}
+    <section class="contact-end" aria-label="Contact"><p>Let’s make data dependable.</p><a href={`mailto:${content.profile.email}`}>{content.profile.email} <span aria-hidden="true">↗</span></a></section>
+    <div class="print-only"><ResumeDocument content={content} profile={content.exports.profiles.find((item) => item.id === content.exports.default)!} /></div>
+  </main>
+</Layout>

@@ -1,0 +1,19 @@
+---
+import { resumeBlocks, type Resume, type ExportProfile } from '../lib/content';
+interface Props { content: Resume; profile: ExportProfile }
+const { content, profile } = Astro.props;
+const blocks = resumeBlocks(content, profile);
+---
+<article class="resume-document">
+  {content.sample && <p class="document-sample">SAMPLE RESUME - Fictional career details and results. Not for job applications.</p>}
+  <h1>{content.profile.name}</h1>
+  <p class="document-title">{content.profile.title}</p>
+  <p class="document-contact">{content.profile.email}{content.profile.location && ` | ${content.profile.location}`}</p>
+  {content.profile.links.length > 0 && <p class="document-contact">{content.profile.links.map((link, i) => <>{i > 0 && ' | '}<a href={link.url}>{link.url}</a></>)}</p>}
+  <p class="document-summary">{content.profile.summary}</p>
+  {blocks.map((block) => <section class="document-section"><h2>{block.heading}</h2>
+    {block.paragraphs.map((paragraph) => paragraph.bullet
+      ? <p class="document-bullet"><span aria-hidden="true">• </span>{paragraph.text}</p>
+      : <p class:list={[paragraph.strong && 'document-strong']}>{paragraph.text}</p>)}
+  </section>)}
+</article>
