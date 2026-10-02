@@ -1,0 +1,9 @@
+---
+interface Props { name?: 'github' | 'linkedin' | 'mail' }
+const { name } = Astro.props;
+---
+{name && <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  {name === 'github' && <path d="M9 19c-4.3 1.3-4.3-2.2-6-2.7m12 5.2v-3.8c0-1.1-.4-1.8-.8-2.2 2.7-.3 5.5-1.3 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.8 11.8 0 0 0-6.2 0C6.3 2.6 5.3 2.9 5.3 2.9a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 3.9 9.5c0 4.7 2.8 5.7 5.5 6-.4.4-.8 1.1-.8 2.2v3.8" />}
+  {name === 'linkedin' && <><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7.5 10.5v7M11.5 17.5v-7m0 3a3 3 0 0 1 6 0v4" /><circle cx="7.5" cy="7" r=".65" fill="currentColor" stroke="none" /></>}
+  {name === 'mail' && <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>}
+</svg>}

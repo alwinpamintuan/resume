@@ -8,7 +8,7 @@ const { pipeline } = Astro.props;
     <path d="M198 65H232M424 65H458" stroke="currentColor" stroke-width="1" />
     <path d="m226 60 6 5-6 5m226-10 6 5-6 5" fill="none" stroke="currentColor" />
     {pipeline.nodes.map((node, i) => <g transform={`translate(${i * 226}, 24)`}>
-      <rect x="0.5" y="0.5" width="197" height="81" rx="3" fill={i === 1 ? '#e9edf9' : '#f7f6f2'} stroke={i === 1 ? '#3756aa' : '#c8c9c5'} />
+      <rect x="0.5" y="0.5" width="197" height="81" fill={i === 1 ? 'var(--accent-wash)' : 'var(--paper)'} stroke={i === 1 ? 'var(--accent)' : 'var(--line)'} />
       <text x="16" y="24" class="diagram-number">0{i + 1}</text>
       <text x="16" y="55" class="diagram-label">{node}</text>
     </g>)}
@@ -17,7 +17,7 @@ const { pipeline } = Astro.props;
     <path d="M140 82v35m0 87v35" stroke="currentColor" />
     <path d="m135 111 5 6 5-6m-10 122 5 6 5-6" fill="none" stroke="currentColor" />
     {pipeline.nodes.map((node, i) => <g transform={`translate(15, ${i * 122})`}>
-      <rect x=".5" y=".5" width="249" height="81" rx="3" fill={i === 1 ? '#e9edf9' : '#f7f6f2'} stroke={i === 1 ? '#3756aa' : '#c8c9c5'} />
+      <rect x=".5" y=".5" width="249" height="81" fill={i === 1 ? 'var(--accent-wash)' : 'var(--paper)'} stroke={i === 1 ? 'var(--accent)' : 'var(--line)'} />
       <text x="16" y="24" class="diagram-number">0{i + 1}</text>
       <text x="16" y="55" class="diagram-label">{node}</text>
     </g>)}

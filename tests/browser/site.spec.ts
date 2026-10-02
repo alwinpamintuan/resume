@@ -37,8 +37,9 @@ test('local links, anchors, and assets resolve', async ({ page, request }) => {
 test('responsive layouts and screenshots', async ({ page }) => {
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 960 });
-    for (const route of ['/', '/resume/', '/reliable-ingestion/', '/schema-notes/']) {
+    for (const route of routes.filter((route) => route !== '/404.html')) {
       await page.goto(route); await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} at ${width}px`).toBeTruthy();
       await page.screenshot({ path: `work/screenshots/${route === '/' ? 'home' : route.replaceAll('/', '')}-${width}.png`, fullPage: true });
     }
@@ -48,9 +49,10 @@ test('responsive layouts and screenshots', async ({ page }) => {
 test('content remains visible without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage(); await page.goto('http://127.0.0.1:4322/');
-  await expect(page.getByRole('heading', { name: 'Selected Work', exact: true })).toBeVisible();
+  await expect(page.locator('#intro-title')).toHaveText(content.profile.name);
   await expect(page.getByRole('link', { name: 'Download résumé' })).toBeVisible();
-  await page.getByRole('link', { name: 'Schema Notes' }).click(); await expect(page.locator('h1')).toHaveText('Schema Notes');
+  const showcase = content.work.find((work) => work.visible && work.slug);
+  if (showcase) { await page.goto(`http://127.0.0.1:4322/${showcase.slug}/`); await expect(page.locator('h1')).toHaveText(showcase.title); }
   await context.close();
 });
 
@@ -59,6 +61,7 @@ test('keyboard skip link and reduced motion', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
+  expect(await page.locator('#intro-title').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
 });
 
 test('long names and titles stay within narrow layouts', async ({ page }) => {
@@ -67,9 +70,12 @@ test('long names and titles stay within narrow layouts', async ({ page }) => {
   await page.locator('.hero h1 span').last().evaluate((element) => { element.textContent = 'Averylongprofessionalsurnamethatmustwrap'; });
   await page.locator('.role-heading h4').first().evaluate((element) => { element.textContent = 'Senior Data Platform and Infrastructure Engineering Specialist'; });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  await page.goto('/schema-notes/');
-  await page.locator('h1').evaluate((element) => { element.textContent = 'A comprehensive schema inspection and comparison utility'; });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  const showcase = content.work.find((work) => work.visible && work.slug);
+  if (showcase) {
+    await page.goto(`/${showcase.slug}/`);
+    await page.locator('h1').evaluate((element) => { element.textContent = 'A comprehensive schema inspection and comparison utility'; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  }
 });
 
 test('home printing uses conventional résumé', async ({ page }) => {
@@ -78,19 +84,20 @@ test('home printing uses conventional résumé', async ({ page }) => {
   await expect(page.locator('.print-only .resume-document')).toBeVisible();
 });
 
-test('exports contain readable sample text in order', async () => {
+test('exports contain readable résumé text in order', async () => {
   for (const profile of content.exports.profiles) {
     const name = `${content.profile.documentName}${profile.id === content.exports.default ? '' : `-${profile.id}`}`;
     const loadingTask = getDocument({ data: new Uint8Array(readFileSync(`dist/downloads/${name}.pdf`)), useSystemFonts: true });
     const pdf = await loadingTask.promise;
     let text = '';
     for (let i = 1; i <= pdf.numPages; i++) text += (await (await pdf.getPage(i)).getTextContent()).items.map((item) => 'str' in item ? item.str : '').join(' ');
-    expect(text).toContain('SAMPLE RESUME'); expect(text).toContain(content.profile.name);
+    expect(text.includes('SAMPLE RESUME')).toBe(content.sample); expect(text).toContain(content.profile.name);
     expect(text.indexOf('Professional Experience')).toBeLessThan(text.indexOf('Technical Skills'));
-    expect(text).not.toContain('Schema Notes'); expect(pdf.numPages).toBeLessThanOrEqual(2);
+    for (const work of content.work.filter((work) => work.placement === 'other')) expect(text).not.toContain(work.title);
+    expect(pdf.numPages).toBeLessThanOrEqual(2);
     await loadingTask.destroy();
     const zip = await JSZip.loadAsync(readFileSync(`dist/downloads/${name}.docx`));
     const xml = await zip.file('word/document.xml')!.async('text');
-    expect(xml).toContain('SAMPLE RESUME'); expect(xml).toContain('Professional Experience'); expect(xml).not.toContain('<w:tbl>');
+    expect(xml.includes('SAMPLE RESUME')).toBe(content.sample); expect(xml).toContain('Professional Experience'); expect(xml).not.toContain('<w:tbl>');
   }
 });

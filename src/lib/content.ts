@@ -14,7 +14,7 @@ export const contentSchema = z.object({
   sample: z.boolean(),
   profile: z.object({ name: text, title: text, summary: text, location: text.optional(), email: z.email(),
     links: z.array(z.object({ label: text, url: webUrl })).default([]),
-    documentName: id }),
+    documentName: text.regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/, 'Use letters, numbers, underscores, and hyphens without an extension') }),
   sections: z.array(z.object({ id: z.enum(sections), label: text, visible: z.boolean().default(true) })),
   impact: z.array(z.object({ id, value: text, label: text, context: text })).default([]),
   experience: z.array(z.object({ id, company: text, location: text.optional(),

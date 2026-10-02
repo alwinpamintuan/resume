@@ -107,7 +107,7 @@ Edit `src/content/resume.yml`. Use spaces for indentation, quote dates and numer
 | `sample` | Required boolean; controls sample notices and indexing. |
 | `profile` | Required name, title, summary, email, document filename, and optional location/links. |
 | `sections` | Required ordered list of section IDs, labels, and optional visibility. |
-| `impact` | Optional prominent results: `id`, `value`, `label`, `context`. |
+| `impact` | Optional legacy results: `id`, `value`, `label`, `context`. Accepted for compatibility; not displayed. Put relevant results in experience highlights. |
 | `experience` | Optional employers, nested roles, scope, and achievement bullets. |
 | `work` | Optional work/project entries, placement, links, and showcase details. |
 | `expertise` | Optional groups: `area` and nonempty `tools` list. |
@@ -132,7 +132,7 @@ profile:
       url: https://github.com/your-account
 ```
 
-`documentName` uses lowercase letters, numbers, and hyphens and begins with a letter. Do not include an extension. Links must use HTTP or HTTPS. Add only public contact details you want published; every field in this YAML is source content, not secret storage.
+`documentName` uses letters, numbers, underscores, and hyphens and begins with a letter or number. Do not include an extension or directory path. Links must use HTTP or HTTPS. Add only public contact details you want published; every field in this YAML is source content, not secret storage.
 
 ### Sections and order
 
@@ -206,10 +206,12 @@ Append an entry to `work`. A local `slug` creates `/<slug>/` automatically durin
 - Use `placement: selected` for professionally relevant work and `placement: other` for More Projects. The field controls categorization; it does not alter the entry's route.
 - Local showcases require all four detail paragraphs. Screenshots and pipelines are optional.
 - Put screenshots under `public/images/`; reference them using `/images/...`. Supply meaningful alt text. The image is displayed at its intrinsic aspect ratio; use a landscape image when possible.
+- Selected Work on the homepage displays `details.screenshot`, or `details.pipeline` when no screenshot is supplied. The separate project page displays both if both are configured. More Projects remains a compact list.
+- Adding an image requires placing its file in `public/images/` and editing its YAML path and alt text. Pipeline diagrams are generated entirely from YAML. No Astro, TypeScript, or CSS edits are needed for either.
 - Slugs start with a letter and contain lowercase letters, digits, and hyphens. Do not use an existing slug or infrastructure names such as `resume`, `downloads`, `images`, `404`, `assets`, or `robots`.
 - The sequence in YAML controls display order within each category.
 
-Optional pipeline illustration:
+Optional pipeline illustration, nested under the entry's `details`:
 
 ```yaml
 pipeline:
@@ -263,7 +265,7 @@ exports:
 
 - `highlightIds` selects achievement bullets and their order within each role. Role titles, dates, and scopes remain present.
 - `workIds` selects and orders work included in the document. References must point to visible entries with `placement: selected`.
-- Other projects, impact tiles, and working principles are omitted from documents.
+- Other projects and working principles are omitted from documents.
 - The default profile creates `dist/downloads/<documentName>.pdf` and `.docx`.
 - Additional profiles create `<documentName>-<profileId>.pdf` and `.docx` in the same folder. They are not linked from the interface but **are public if deployed**. Do not put confidential information in them.
 - A4 is the default paper size. PDF margins are controlled by `@page` in the stylesheet; DOCX dimensions/margins are in `scripts/export.ts`.

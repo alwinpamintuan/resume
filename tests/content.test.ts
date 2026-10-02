@@ -4,10 +4,14 @@ import { readFileSync } from 'node:fs';
 import { stringify, parse } from 'yaml';
 import { parseContent, resumeBlocks, type Resume } from '../src/lib/content.ts';
 
-const source = readFileSync('src/content/resume.yml', 'utf8');
+const source = readFileSync('tests/fixtures/resume.yml', 'utf8');
 function changed(edit: (data: Resume) => void): string { const data = parse(source) as Resume; edit(data); return stringify(data); }
 
 test('sample content and both profiles validate', () => { const data = parseContent(source); assert.equal(data.exports.profiles.length, 2); assert.equal(data.sample, true); });
+test('résumé filenames support conventional naming without allowing paths', () => {
+  assert.equal(parseContent(changed((d) => { d.profile.documentName = 'Resume_JohnAlwinPamintuan_DataEngineer'; })).profile.documentName, 'Resume_JohnAlwinPamintuan_DataEngineer');
+  assert.throws(() => parseContent(changed((d) => { d.profile.documentName = '../resume'; })), /without an extension/);
+});
 test('malformed YAML is rejected', () => assert.throws(() => parseContent('profile: [\n')));
 test('errors identify missing required fields', () => assert.throws(() => parseContent('sample: true'), /profile/));
 test('duplicate IDs are rejected', () => assert.throws(() => parseContent(changed((d) => { d.work[1]!.id = d.work[0]!.id; })), /Duplicate ID/));

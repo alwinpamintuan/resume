@@ -1,0 +1,148 @@
+sample: true
+
+profile:
+  name: John Alwin Pamintuan
+  title: Data Engineer
+  summary: I build dependable data platforms that make complex information useful.
+  location: Remote · Open to collaboration
+  email: alwinpamintuan@gmail.com
+  documentName: Resume_JohnAlwinPamintuan_DataEngineer
+  links:
+    - label: GitHub
+      url: https://github.com/alwinpamintuan
+    - label: LinkedIn
+      url: https://www.linkedin.com/alwinpamintuan
+
+sections:
+  - { id: experience, label: Experience }
+  - { id: selected, label: Selected Work }
+  - { id: other, label: More Projects }
+  - { id: expertise, label: Expertise }
+  - { id: principles, label: How I Work }
+  - { id: education, label: Education }
+
+impact:
+  - id: impact-freshness
+    value: 4×
+    label: Faster data delivery
+    context: From overnight batches to six-hour freshness.
+  - id: impact-cost
+    value: 32%
+    label: Lower warehouse cost
+    context: Through incremental models and workload tuning.
+  - id: impact-ownership
+    value: "18"
+    label: Production pipelines
+    context: Owned across ingestion, transformation, and recovery.
+
+experience:
+  - id: northstar
+    company: Northstar Analytics
+    location: Remote
+    roles:
+      - title: Mid-Senior Data Engineer
+        start: "2026-09"
+        end: Present
+        scope: Own the reliability and evolution of a shared data platform serving analytics and operations teams.
+        highlights:
+          - id: platform-ownership
+            text: Took ownership of 18 production pipelines, establishing recovery runbooks and data freshness objectives with stakeholders.
+          - id: platform-cost
+            text: Reduced warehouse compute costs by 32% through incremental transformations and workload tuning, preserving reporting freshness.
+      - title: Data Engineer
+        start: "2023-06"
+        end: "2026-08"
+        scope: Built ingestion and transformation workflows for product and operational reporting.
+        highlights:
+          - id: ingestion-freshness
+            text: Replaced nightly ingestion with incremental loads, improving data freshness from 24 hours to six hours.
+          - id: ingestion-recovery
+            text: Introduced idempotent writes, source-level validation, and replayable backfills to simplify incident recovery.
+  - id: clearwater
+    company: Clearwater Systems
+    location: Hybrid
+    roles:
+      - title: Associate Data Engineer
+        start: "2021-07"
+        end: "2023-05"
+        scope: Supported reporting datasets and automated recurring data preparation for business teams.
+        highlights:
+          - id: reporting-models
+            text: Consolidated recurring SQL transformations into tested models with documented ownership and definitions.
+
+work:
+  - id: reliable-ingestion
+    title: Reliable by design
+    summary: An incremental ingestion platform with predictable freshness and a clear path to recovery.
+    placement: selected
+    type: Production platform
+    year: "2026"
+    slug: reliable-ingestion
+    technologies: [Python, Airflow, PostgreSQL, Snowflake]
+    details:
+      problem: Overnight ingestion made operational decisions depend on yesterday's data. Failed batches required manual investigation and reruns.
+      contribution: I designed incremental ingestion with source checkpoints, idempotent writes, and explicit freshness checks. I owned the implementation and recovery runbooks within a three-person team.
+      tradeoff: Six-hour batches met the business requirement without the infrastructure and operational burden of continuous streaming.
+      outcome: Freshness improved from 24 hours to six hours, with replayable backfills and documented recovery for each source. These are fictional sample results.
+      pipeline:
+        label: From source to trusted data
+        nodes: [Source systems, Validated ingestion, Trusted warehouse]
+        caption: Checkpoints and replayable loads keep failures recoverable; freshness checks make delivery visible.
+  - id: warehouse-efficiency
+    title: Less compute. Same answers.
+    summary: Incremental models and workload tuning that reduced warehouse cost by 32% while preserving reporting freshness.
+    placement: selected
+    type: Warehouse optimization
+    year: "2025"
+    technologies: [SQL, dbt, Snowflake]
+  - id: schema-notes
+    title: Schema Notes
+    summary: A small browser tool for comparing schemas and making changes easier to review.
+    placement: other
+    type: Independent experiment
+    year: "2026"
+    slug: schema-notes
+    technologies: [TypeScript, JSON, CSS]
+    details:
+      problem: Small schema changes are easy to miss when reviewing large JSON files.
+      contribution: Built a prototype that groups additions, removals, and type changes into a compact comparison. This page illustrates how to showcase a future tool; no live app is included.
+      tradeoff: Kept processing local to the browser and limited the prototype to flat schemas to make the initial behavior easy to understand.
+      outcome: A focused interface for reviewing changes before integrating them into downstream models. Fictional demonstration project.
+      screenshot:
+        src: /images/schema-notes.svg
+        alt: Illustrative Schema Notes interface showing two added fields and one changed type; this is a mockup, not a running app.
+
+expertise:
+  - area: Ingestion & orchestration
+    tools: [Python, Airflow, PostgreSQL]
+  - area: Modeling & warehousing
+    tools: [SQL, dbt, Snowflake]
+  - area: Infrastructure & delivery
+    tools: [Docker, Terraform, GitHub Actions]
+  - area: Reliability
+    tools: [Data quality checks, Observability, Incident recovery]
+
+principles:
+  - title: Make failure recoverable.
+    description: Design replayable loads and clear recovery steps before a pipeline reaches production.
+  - title: Make trust observable.
+    description: Agree on freshness and quality expectations, then make them visible to the people using the data.
+  - title: Choose useful simplicity.
+    description: Match the architecture to the actual requirement and document the tradeoffs.
+
+education:
+  - institution: Example University
+    qualification: Bachelor of Science in Computer Science
+    year: "2021"
+
+exports:
+  default: general
+  profiles:
+    - id: general
+      label: Data Engineering
+      highlightIds: [platform-ownership, platform-cost, ingestion-freshness, ingestion-recovery, reporting-models]
+      workIds: [reliable-ingestion]
+    - id: platform
+      label: Data Platform Engineering
+      highlightIds: [platform-ownership, ingestion-recovery, platform-cost]
+      workIds: [reliable-ingestion, warehouse-efficiency]

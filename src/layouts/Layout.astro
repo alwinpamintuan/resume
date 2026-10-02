@@ -2,9 +2,7 @@
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
-import '@fontsource/source-serif-4/latin-400.css';
 import interFont from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
-import serifFont from '@fontsource/source-serif-4/files/source-serif-4-latin-400-normal.woff2?url';
 import '../styles/global.css';
 import type { Resume } from '../lib/content';
 
@@ -19,12 +17,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f7f6f2" />
+    <meta name="theme-color" content="#fafaf8" />
     { (content.sample || noindex) && <meta name="robots" content="noindex, nofollow" /> }
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" href={interFont} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -37,10 +34,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <div class="shell">
       <header class="site-header">
         <a class="brand" href="/" aria-label={`${content.profile.name}, ${content.profile.title}, home`}><span class="brand-mark" aria-hidden="true">ap<span>.</span></span><span class="brand-caption">{content.profile.title}</span></a>
-        <nav aria-label="Primary">{content.sections.some((section) => section.id === 'experience' && section.visible) && content.experience.length > 0 && <a href="/#experience">Experience</a>}{content.sections.some((section) => section.id === 'selected' && section.visible) && content.work.some((work) => work.visible && work.placement === 'selected') && <a href="/#selected">Work</a>}<a class="header-contact" href={`mailto:${content.profile.email}`}>Get in touch <span aria-hidden="true">↗</span></a></nav>
+        <nav aria-label="Primary">{content.sections.some((section) => section.id === 'experience' && section.visible) && content.experience.length > 0 && <a href="/#experience">Experience</a>}{content.sections.some((section) => section.id === 'selected' && section.visible) && content.work.some((work) => work.visible && work.placement === 'selected') && <a href="/#selected">Work</a>}<a class="header-contact" href={`mailto:${content.profile.email}`}>Contact</a></nav>
       </header>
       <slot />
-      <footer class="site-footer"><a href="/">{content.profile.name}</a><span>Thoughtful systems. Useful data.</span><a href="#top">Back to top <span aria-hidden="true">↑</span></a></footer>
+      <footer class="site-footer"><a href="/">{content.profile.name}</a><a href="#top">Back to top <span aria-hidden="true">↑</span></a></footer>
     </div>
   </body>
 </html>
