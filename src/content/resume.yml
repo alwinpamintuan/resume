@@ -1,9 +1,11 @@
+# Career details and credential dates sourced from the saved LinkedIn profile.
+# The summary is concise editorial wording; no achievements or metrics are inferred.
 sample: false
 
 profile:
   name: John Alwin Pamintuan
   title: Data Engineer
-  summary: I build dependable data platforms that make complex information useful.
+  summary: Data Engineer at Globe Telecom with experience across data platforms, orchestration, and transformation.
   location: Makati City · Metro Manila
   email: alwinpamintuan@gmail.com
   documentName: Resume_JohnAlwinPamintuan_DataEngineer
@@ -11,127 +13,77 @@ profile:
     - label: GitHub
       url: https://github.com/alwinpamintuan
     - label: LinkedIn
-      url: https://www.linkedin.com/alwinpamintuan
+      url: https://www.linkedin.com/in/alwinpamintuan/
 
 sections:
   - { id: experience, label: Experience }
   - { id: selected, label: Selected Work }
   - { id: other, label: More Projects }
   - { id: expertise, label: Technical Skills }
-  - { id: principles, label: How I Work }
+  - { id: certifications, label: Certifications }
   - { id: education, label: Education }
 
-impact:
-  - id: impact-freshness
-    value: 4×
-    label: Faster data delivery
-    context: From overnight batches to six-hour freshness.
-  - id: impact-cost
-    value: 32%
-    label: Lower warehouse cost
-    context: Through incremental models and workload tuning.
-  - id: impact-ownership
-    value: "18"
-    label: Production pipelines
-    context: Owned across ingestion, transformation, and recovery.
+impact: []
 
 experience:
   - id: globe
-    company: Globe Telecom, Inc.
-    location: Taguig City
+    company: Globe Telecom
     roles:
       - title: Senior Data Engineer
         start: "2026-05"
         end: Present
-        scope: Own the reliability and evolution of a shared data platform serving analytics and operations teams.
-        highlights:
-          - id: platform-ownership
-            text: Took ownership of 18 production pipelines, establishing recovery runbooks and data freshness objectives with stakeholders.
-          - id: platform-cost
-            text: Reduced warehouse compute costs by 32% through incremental transformations and workload tuning, preserving reporting freshness.
+        highlights: []
       - title: Data Engineer
         start: "2022-10"
         end: "2026-05"
-        scope: Built ingestion and transformation workflows for product and operational reporting.
-        highlights:
-          - id: ingestion-freshness
-            text: Replaced nightly ingestion with incremental loads, improving data freshness from 24 hours to six hours.
-          - id: ingestion-recovery
-            text: Introduced idempotent writes, source-level validation, and replayable backfills to simplify incident recovery.
+        highlights: []
 
-# work:
-#   - id: reliable-ingestion
-#     title: Reliable by design
-#     summary: An incremental ingestion platform with predictable freshness and a clear path to recovery.
-#     placement: selected
-#     type: Production platform
-#     year: "2026"
-#     slug: reliable-ingestion
-#     technologies: [Python, Airflow, PostgreSQL, Snowflake]
-#     details:
-#       problem: Overnight ingestion made operational decisions depend on yesterday's data. Failed batches required manual investigation and reruns.
-#       contribution: I designed incremental ingestion with source checkpoints, idempotent writes, and explicit freshness checks. I owned the implementation and recovery runbooks within a three-person team.
-#       tradeoff: Six-hour batches met the business requirement without the infrastructure and operational burden of continuous streaming.
-#       outcome: Freshness improved from 24 hours to six hours, with replayable backfills and documented recovery for each source. These are fictional sample results.
-#       pipeline:
-#         label: From source to trusted data
-#         nodes: [Source systems, Validated ingestion, Trusted warehouse]
-#         caption: Checkpoints and replayable loads keep failures recoverable; freshness checks make delivery visible.
-#   - id: warehouse-efficiency
-#     title: Less compute. Same answers.
-#     summary: Incremental models and workload tuning that reduced warehouse cost by 32% while preserving reporting freshness.
-#     placement: selected
-#     type: Warehouse optimization
-#     year: "2025"
-#     technologies: [SQL, dbt, Snowflake]
-#   - id: schema-notes
-#     title: Schema Notes
-#     summary: A small browser tool for comparing schemas and making changes easier to review.
-#     placement: other
-#     type: Independent experiment
-#     year: "2026"
-#     slug: schema-notes
-#     technologies: [TypeScript, JSON, CSS]
-#     details:
-#       problem: Small schema changes are easy to miss when reviewing large JSON files.
-#       contribution: Built a prototype that groups additions, removals, and type changes into a compact comparison. This page illustrates how to showcase a future tool; no live app is included.
-#       tradeoff: Kept processing local to the browser and limited the prototype to flat schemas to make the initial behavior easy to understand.
-#       outcome: A focused interface for reviewing changes before integrating them into downstream models. Fictional demonstration project.
-#       screenshot:
-#         src: /images/schema-notes.svg
-#         alt: Illustrative Schema Notes interface showing two added fields and one changed type; this is a mockup, not a running app.
+# Add current projects when ready.
+work: []
 
 expertise:
-  - area: Pipelines
-    tools: [Python, Airflow, PostgreSQL]
-  - area: Warehousing
-    tools: [SQL, dbt, Snowflake]
-  - area: Infrastructure
-    tools: [Docker, Terraform, GitHub Actions]
-  - area: Reliability
-    tools: [Data quality checks, Observability, Incident recovery]
+  - area: Data platforms
+    tools: [Databricks, Azure Databricks, Snowflake]
+  - area: Cloud platforms
+    tools: [Google Cloud, AWS]
+  - area: Orchestration & ingestion
+    tools: [Apache Airflow, Apache NiFi]
+  - area: Transformation
+    tools: [Apache Spark, dbt]
+  - area: Programming
+    tools: [Python, Java]
 
-principles:
-  - title: Make failure recoverable.
-    description: Design replayable loads and clear recovery steps before a pipeline reaches production.
-  - title: Make trust observable.
-    description: Agree on freshness and quality expectations, then make them visible to the people using the data.
-  - title: Choose useful simplicity.
-    description: Match the architecture to the actual requirement and document the tradeoffs.
+certifications:
+  - name: Databricks Certified Data Engineer Associate
+    issuer: Databricks
+    issued: "2026-04"
+    expires: "2028-04"
+    credentialUrl: https://credentials.databricks.com/2e3e8f41-9f83-47cd-8c37-71a99b884b28
+  - name: Generative AI Leader Certification
+    issuer: Google
+    issued: "2026-06"
+    expires: "2029-06"
+    credentialUrl: https://www.credly.com/badges/d3c800e3-9fe0-4e63-8438-f19e195f649b/linked_in_profile
+  - name: dbt Fundamentals
+    issuer: dbt Labs
+    issued: "2024-10"
+    credentialUrl: https://credentials.getdbt.com/d7ffe721-bf68-41e9-898d-4499588d6e7d
+  - name: MongoDB Schema Design Patterns and Anti-patterns Skill Badge
+    issuer: MongoDB
+    issued: "2025-07"
+    credentialUrl: https://www.credly.com/badges/4bb8251a-87a7-456e-9d9b-c12e5d692e7e/linked_in_profile
+
+principles: []
 
 education:
-  - institution: Example University
-    qualification: Bachelor of Science in Computer Science
-    year: "2021"
+  - institution: University of the Philippines Los Baños
+    qualification: Bachelor of Science in Computer Science (magna cum laude)
+    year: "2022"
 
 exports:
   default: general
   profiles:
     - id: general
       label: Data Engineering
-      highlightIds: [platform-ownership, platform-cost, ingestion-freshness, ingestion-recovery]
-      workIds: []
-    - id: platform
-      label: Data Platform Engineering
-      highlightIds: [platform-ownership, ingestion-recovery, platform-cost]
+      highlightIds: []
       workIds: []

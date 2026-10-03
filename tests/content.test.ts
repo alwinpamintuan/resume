@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { stringify, parse } from 'yaml';
-import { parseContent, resumeBlocks, type Resume } from '../src/lib/content.ts';
+import { parseContent, resumeBlocks, skillEvidence, type Resume } from '../src/lib/content.ts';
 
 const source = readFileSync('tests/fixtures/resume.yml', 'utf8');
 function changed(edit: (data: Resume) => void): string { const data = parse(source) as Resume; edit(data); return stringify(data); }
@@ -43,4 +43,82 @@ test('export profiles select real content and omit secondary projects', () => {
 test('editing YAML changes the shared document model', () => {
   const data = parseContent(changed((d) => { d.experience[0]!.company = 'Changed Employer'; }));
   assert.match(JSON.stringify(resumeBlocks(data, data.exports.profiles[0]!)), /Changed Employer/);
+});
+
+test('certifications follow skills in documents and respect section visibility', () => {
+  const data = parseContent(source);
+  const profile = data.exports.profiles[0]!;
+  const blocks = resumeBlocks(data, profile);
+  assert.equal(blocks.findIndex((block) => block.heading === 'Certifications'), blocks.findIndex((block) => block.heading === 'Technical Skills') + 1);
+  assert.match(JSON.stringify(blocks), /Example Data Engineering Certification.*Example Certification Board.*Issued Jun 2026.*Expires Jun 2028/);
+  const certification = blocks.find((block) => block.heading === 'Certifications')!;
+  assert.equal(certification.paragraphs[0]!.href, 'https://example.com/credentials/data-engineering');
+  assert.equal(certification.paragraphs.some((paragraph) => paragraph.text.includes('https://')), false);
+  assert.match(JSON.stringify(blocks), /https:\/\/example.com\/credentials\/data-engineering/);
+  data.sections.find((section) => section.id === 'certifications')!.visible = false;
+  assert.equal(resumeBlocks(data, profile).some((block) => block.heading === 'Certifications'), false);
+  data.sections.find((section) => section.id === 'certifications')!.visible = true;
+  data.certifications = [];
+  assert.equal(resumeBlocks(data, profile).some((block) => block.heading === 'Certifications'), false);
+});
+
+test('certifications allow omitted dates and reject unsafe links and reversed dates', () => {
+  const data = parseContent(changed((d) => { d.certifications = [{ name: 'Example credential', issuer: 'Example issuer' }]; }));
+  assert.match(JSON.stringify(resumeBlocks(data, data.exports.profiles[0]!)), /Example credential.*Example issuer/);
+  assert.throws(() => parseContent(changed((d) => { d.certifications[0]!.credentialUrl = 'javascript:alert(1)'; })), /http/);
+  assert.throws(() => parseContent(changed((d) => { d.certifications[0]!.expires = '2025-06'; })), /Expiry must follow/);
+  assert.throws(() => parseContent(changed((d) => { d.certifications[0]!.issued = '2026-13'; })), /YYYY-MM/);
+  const legacy = parse(source);
+  delete legacy.certifications;
+  assert.deepEqual(parseContent(stringify(legacy)).certifications, []);
+});
+
+test('minimal career entries do not require invented role descriptions or achievements', () => {
+  const data = parseContent(changed((d) => {
+    d.experience.forEach((job) => job.roles.forEach((role) => { delete role.scope; role.highlights = []; }));
+    d.work = [];
+    d.exports.profiles.forEach((profile) => { profile.highlightIds = []; profile.workIds = []; });
+  }));
+  const blocks = resumeBlocks(data, data.exports.profiles[0]!);
+  assert.equal(blocks.some((block) => block.heading === 'Selected Work'), false);
+  assert.equal(blocks.flatMap((block) => block.paragraphs).some((paragraph) => !paragraph.text), false);
+});
+
+test('skill evidence joins explicit achievement tags and project technologies', () => {
+  const data = parseContent(source);
+  const airflow = skillEvidence(data).get('airflow')!;
+  assert.equal(airflow.length, 2);
+  assert.equal(airflow[0]!.href, '/#ingestion-recovery');
+  assert.equal(airflow[1]!.href, '/reliable-ingestion/');
+  assert.equal(skillEvidence(data).has('terraform'), false);
+});
+
+test('skill matching ignores capitalization and whitespace without duplicate evidence', () => {
+  const data = parseContent(changed((d) => { d.experience[0]!.roles[1]!.highlights[1]!.skills = [' PYTHON ', 'python']; }));
+  assert.equal(skillEvidence(data).get('python')!.filter((item) => item.href === '/#ingestion-recovery').length, 1);
+});
+
+test('hidden work and sections do not expose skill evidence', () => {
+  const data = parseContent(source);
+  data.work[0]!.visible = false;
+  data.sections.find((section) => section.id === 'experience')!.visible = false;
+  assert.equal(skillEvidence(data).has('airflow'), false);
+  data.sections.find((section) => section.id === 'other')!.visible = false;
+  assert.equal(skillEvidence(data).has('typescript'), false);
+});
+
+
+test('education highlights remain under Education and old entries still validate', () => {
+  const legacy = parseContent(source);
+  assert.deepEqual(legacy.education[0]!.highlights, []);
+  const data = parseContent(changed((d) => { d.education[0]!.highlights = ['Student organization leadership', 'Competitive programming participation']; }));
+  const blocks = resumeBlocks(data, data.exports.profiles[0]!);
+  const education = blocks.find((block) => block.heading === 'Education')!;
+  assert.deepEqual(education.paragraphs.slice(2), [
+    { text: 'Student organization leadership', bullet: true },
+    { text: 'Competitive programming participation', bullet: true }
+  ]);
+  assert.doesNotMatch(JSON.stringify(blocks.find((block) => block.heading === 'Professional Experience')), /Student organization leadership/);
+  data.sections.find((section) => section.id === 'education')!.visible = false;
+  assert.equal(resumeBlocks(data, data.exports.profiles[0]!).some((block) => block.heading === 'Education'), false);
 });

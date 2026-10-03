@@ -1,0 +1,73 @@
+---
+import { skillEvidence, skillKey, type Resume } from '../lib/content';
+interface Props { content: Resume }
+const { content } = Astro.props;
+const evidence = skillEvidence(content);
+const linkedSkills = [...new Set(content.expertise.flatMap((group) => group.tools.map(skillKey)))].filter((key) => evidence.has(key));
+const names = new Map(content.expertise.flatMap((group) => group.tools.map((tool) => [skillKey(tool), tool] as const)));
+const panelId = (key: string) => `skill-proof-${linkedSkills.indexOf(key)}`;
+---
+<div class="skills">
+  <dl class="expertise">{content.expertise.map((group) => <div><dt>{group.area}</dt><dd>{group.tools.map((tool, i) => <>{i > 0 && <span class="skill-separator" aria-hidden="true"> · </span>}{evidence.has(skillKey(tool)) ? <><span class="skill-static">{tool}</span><button class="skill-trigger" type="button" hidden aria-expanded="false" aria-controls={panelId(skillKey(tool))} data-skill={tool}>{tool}</button></> : <span>{tool}</span>}</>)}</dd></div>)}</dl>
+  {linkedSkills.length > 0 && <p class="skill-hint" hidden>Select an underlined skill to see where it was used.</p>}
+  <p class="visually-hidden skill-announcement" role="status"></p>
+  {linkedSkills.map((key) => <details class="skill-evidence" id={panelId(key)} aria-label={`Evidence for ${names.get(key)}`}>
+    <summary>Used in: {names.get(key)}</summary>
+    <div class="evidence-heading" hidden><h3>Used in <span>{names.get(key)}</span></h3><button type="button" class="evidence-close">Close <span aria-hidden="true">×</span></button></div>
+    <ul>{evidence.get(key)!.map((item) => <li><a class="evidence-link" href={item.href}>{item.title} <span aria-hidden="true">↗</span></a><p class="meta">{item.context}</p><p class="evidence-excerpt">{item.excerpt}</p></li>)}</ul>
+  </details>)}
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('.skills').forEach((root) => {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.skill-trigger')];
+    const panels = [...root.querySelectorAll<HTMLDetailsElement>('.skill-evidence')];
+    let active: HTMLButtonElement | undefined;
+    const close = (restoreFocus = false) => {
+      const previous = active;
+      panels.forEach((panel) => { panel.hidden = true; panel.open = false; });
+      buttons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+      active = undefined;
+      if (restoreFocus) previous?.focus();
+    };
+    buttons.forEach((button) => {
+      button.hidden = false;
+      button.addEventListener('click', () => {
+        const same = active === button;
+        close();
+        if (same) return;
+        const panel = panels.find((item) => item.id === button.getAttribute('aria-controls'));
+        if (!panel) return;
+        panel.hidden = false; panel.open = true;
+        active = button; button.setAttribute('aria-expanded', 'true');
+        const status = root.querySelector('.skill-announcement');
+        if (status) status.textContent = `${panel.querySelectorAll('li').length} examples for ${button.dataset.skill}.`;
+      });
+    });
+    root.querySelectorAll<HTMLElement>('.skill-static').forEach((label) => { label.hidden = true; });
+    panels.forEach((panel) => {
+      panel.hidden = true;
+      const summary = panel.querySelector('summary');
+      if (summary) summary.hidden = true;
+      const heading = panel.querySelector<HTMLElement>('.evidence-heading');
+      if (heading) heading.hidden = false;
+      panel.querySelector('.evidence-close')?.addEventListener('click', () => close(true));
+      panel.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
+        link.addEventListener('click', () => {
+          const url = new URL(link.href);
+          if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash) return;
+          const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+          if (target) {
+            close();
+            target.tabIndex = -1;
+            target.focus({ preventScroll: true });
+          }
+        });
+      });
+    });
+    const hint = root.querySelector<HTMLElement>('.skill-hint');
+    if (hint) hint.hidden = false;
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && active) { event.preventDefault(); close(true); }
+    });
+  });
+</script>

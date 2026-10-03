@@ -93,11 +93,21 @@ test('exports contain readable résumé text in order', async () => {
     for (let i = 1; i <= pdf.numPages; i++) text += (await (await pdf.getPage(i)).getTextContent()).items.map((item) => 'str' in item ? item.str : '').join(' ');
     expect(text.includes('SAMPLE RESUME')).toBe(content.sample); expect(text).toContain(content.profile.name);
     expect(text.indexOf('Professional Experience')).toBeLessThan(text.indexOf('Technical Skills'));
+    if (content.certifications.length && content.sections.some((section) => section.id === 'certifications' && section.visible)) {
+      expect(text.indexOf('Technical Skills')).toBeLessThan(text.indexOf('Certifications'));
+      expect(text.indexOf('Certifications')).toBeLessThan(text.indexOf('Education'));
+      for (const credential of content.certifications) expect(text).toContain(credential.name);
+    }
     for (const work of content.work.filter((work) => work.placement === 'other')) expect(text).not.toContain(work.title);
     expect(pdf.numPages).toBeLessThanOrEqual(2);
     await loadingTask.destroy();
     const zip = await JSZip.loadAsync(readFileSync(`dist/downloads/${name}.docx`));
     const xml = await zip.file('word/document.xml')!.async('text');
     expect(xml.includes('SAMPLE RESUME')).toBe(content.sample); expect(xml).toContain('Professional Experience'); expect(xml).not.toContain('<w:tbl>');
+    if (content.certifications.length && content.sections.some((section) => section.id === 'certifications' && section.visible)) {
+      expect(xml.indexOf('Technical Skills')).toBeLessThan(xml.indexOf('Certifications'));
+      expect(xml.indexOf('Certifications')).toBeLessThan(xml.indexOf('Education'));
+      for (const credential of content.certifications) expect(xml).toContain(credential.name);
+    }
   }
 });

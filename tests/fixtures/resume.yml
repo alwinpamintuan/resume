@@ -18,6 +18,7 @@ sections:
   - { id: selected, label: Selected Work }
   - { id: other, label: More Projects }
   - { id: expertise, label: Expertise }
+  - { id: certifications, label: Certifications }
   - { id: principles, label: How I Work }
   - { id: education, label: Education }
 
@@ -57,6 +58,7 @@ experience:
           - id: ingestion-freshness
             text: Replaced nightly ingestion with incremental loads, improving data freshness from 24 hours to six hours.
           - id: ingestion-recovery
+            skills: [Python, Airflow]
             text: Introduced idempotent writes, source-level validation, and replayable backfills to simplify incident recovery.
   - id: clearwater
     company: Clearwater Systems
@@ -121,6 +123,14 @@ expertise:
     tools: [Docker, Terraform, GitHub Actions]
   - area: Reliability
     tools: [Data quality checks, Observability, Incident recovery]
+
+# Fictional credential for testing; not personal résumé content.
+certifications:
+  - name: Example Data Engineering Certification
+    issuer: Example Certification Board
+    issued: "2026-06"
+    expires: "2028-06"
+    credentialUrl: https://example.com/credentials/data-engineering
 
 principles:
   - title: Make failure recoverable.

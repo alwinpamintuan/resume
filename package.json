@@ -14,7 +14,7 @@
     "export": "tsx scripts/export.ts",
     "preview": "astro preview",
     "test": "tsx --test --test-isolation=none tests/content.test.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "tsx scripts/build-test-fixture.ts && playwright test",
     "audit": "tsx scripts/audit.ts"
   },
   "dependencies": {

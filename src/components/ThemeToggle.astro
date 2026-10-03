@@ -1,0 +1,35 @@
+<button type="button" class="theme-control" role="switch" aria-label="Dark mode" aria-checked="false" hidden>
+  <svg class="theme-icon theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5" /></svg>
+  <svg class="theme-icon theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z" /></svg>
+</button>
+<script>
+  const control = document.querySelector<HTMLButtonElement>('.theme-control');
+  if (control) {
+    const root = document.documentElement;
+    const system = matchMedia('(prefers-color-scheme: dark)');
+    let preference = root.dataset.theme ?? 'system';
+    const valid = (value: string | null) => value === 'light' || value === 'dark' ? value : 'system';
+    const apply = (value: string) => {
+      preference = valid(value);
+      if (preference === 'system') delete root.dataset.theme;
+      else root.dataset.theme = preference;
+      const dark = preference === 'dark' || (preference === 'system' && system.matches);
+      control.dataset.dark = String(dark);
+      control.setAttribute('aria-checked', String(dark));
+      control.title = `Switch to ${dark ? 'light' : 'dark'} mode`;
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(root).getPropertyValue('--paper').trim());
+    };
+    apply(preference);
+    control.hidden = false;
+    control.addEventListener('click', () => {
+      apply(control.dataset.dark === 'true' ? 'light' : 'dark');
+      try {
+        localStorage.setItem('portfolio-theme', preference);
+      } catch { /* The selected theme still works when storage is unavailable. */ }
+    });
+    system.addEventListener('change', () => { if (preference === 'system') apply('system'); });
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'portfolio-theme' || event.key === null) apply(valid(event.newValue));
+    });
+  }
+</script>

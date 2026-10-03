@@ -7,7 +7,7 @@ const text = z.string().trim().min(1);
 const id = text.regex(/^[a-z][a-z0-9-]*$/, 'Use lowercase letters, numbers, and hyphens');
 const webUrl = z.url().refine((value) => /^https?:\/\//.test(value), 'Use an http or https URL');
 const date = text.regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Use YYYY-MM');
-const sections = ['experience', 'selected', 'other', 'expertise', 'principles', 'education'] as const;
+const sections = ['experience', 'selected', 'other', 'expertise', 'certifications', 'principles', 'education'] as const;
 const asset = text.refine((value) => /^\/(?!\/)[a-zA-Z0-9_./-]+$/.test(value) && !value.includes('..'), 'Use a local /images/file path');
 
 export const contentSchema = z.object({
@@ -19,7 +19,7 @@ export const contentSchema = z.object({
   impact: z.array(z.object({ id, value: text, label: text, context: text })).default([]),
   experience: z.array(z.object({ id, company: text, location: text.optional(),
     roles: z.array(z.object({ title: text, start: date, end: z.union([date, z.literal('Present')]),
-      scope: text, highlights: z.array(z.object({ id, text })).default([]) })).min(1)
+      scope: text.optional(), highlights: z.array(z.object({ id, text, skills: z.array(text).default([]) })).default([]) })).min(1)
   })).default([]),
   work: z.array(z.object({ id, title: text, summary: text, placement: z.enum(['selected', 'other']),
     visible: z.boolean().default(true), type: text, year: text, technologies: z.array(text).default([]),
@@ -30,8 +30,10 @@ export const contentSchema = z.object({
     }).optional()
   })).default([]),
   expertise: z.array(z.object({ area: text, tools: z.array(text).min(1) })).default([]),
+  certifications: z.array(z.object({ name: text, issuer: text, issued: date.optional(),
+    expires: date.optional(), credentialUrl: webUrl.optional() })).default([]),
   principles: z.array(z.object({ title: text, description: text })).default([]),
-  education: z.array(z.object({ institution: text, qualification: text, year: text })).default([]),
+  education: z.array(z.object({ institution: text, qualification: text, year: text, highlights: z.array(text).default([]) })).default([]),
   exports: z.object({ default: id, profiles: z.array(z.object({ id, label: text,
     highlightIds: z.array(id), workIds: z.array(id) })).min(1) })
 }).superRefine((data, ctx) => {
@@ -39,7 +41,7 @@ export const contentSchema = z.object({
   const reservedIds = new Set<string>(['main', 'top', 'intro-title', ...sections, ...sections.map((section) => `${section}-title`)]);
   const seen = new Set<string>();
   const unique = (value: string, path: (string | number)[]) => {
-    if (reservedIds.has(value)) add(path, `Reserved ID: ${value}`);
+    if (reservedIds.has(value) || value.startsWith('skill-proof-')) add(path, `Reserved ID: ${value}`);
     if (seen.has(value)) add(path, `Duplicate ID: ${value}`);
     seen.add(value);
   };
@@ -49,6 +51,10 @@ export const contentSchema = z.object({
     sectionIds.add(section.id);
   });
   data.impact.forEach((item, i) => unique(item.id, ['impact', i, 'id']));
+  data.certifications.forEach((item, i) => {
+    if (item.issued && item.expires && item.expires < item.issued)
+      add(['certifications', i, 'expires'], 'Expiry must follow issue date');
+  });
   const highlights = new Set<string>();
   data.experience.forEach((job, i) => {
     unique(job.id, ['experience', i, 'id']);
@@ -97,7 +103,7 @@ export function parseContent(source: string): Resume {
 }
 
 export function loadContent(): Resume {
-  return parseContent(readFileSync(resolve('src/content/resume.yml'), 'utf8'));
+  return parseContent(readFileSync(resolve(process.env.PORTFOLIO_CONTENT_FILE ?? 'src/content/resume.yml'), 'utf8'));
 }
 
 export function displayDate(value: string): string {
@@ -110,15 +116,40 @@ export function workHref(work: Work): string | undefined {
   return work.slug ? `/${work.slug}/` : work.destination;
 }
 
+export const skillKey = (value: string) => value.trim().toLocaleLowerCase('en');
+export interface SkillEvidence { title: string; context: string; excerpt: string; href: string }
+
+/** Explicit content tags provide evidence; untagged prose is never interpreted. */
+export function skillEvidence(data: Resume): Map<string, SkillEvidence[]> {
+  const result = new Map<string, SkillEvidence[]>();
+  const enabled = (section: SectionId) => data.sections.some((item) => item.id === section && item.visible);
+  const add = (skills: string[], evidence: SkillEvidence) => {
+    for (const key of new Set(skills.map(skillKey))) {
+      result.set(key, [...(result.get(key) ?? []), evidence]);
+    }
+  };
+  if (enabled('experience')) for (const job of data.experience) for (const role of job.roles) {
+    for (const highlight of role.highlights) add(highlight.skills, {
+      title: job.company, context: role.title, excerpt: highlight.text, href: `/#${highlight.id}`,
+    });
+  }
+  for (const work of data.work) {
+    if (!work.visible || !enabled(work.placement === 'selected' ? 'selected' : 'other')) continue;
+    add(work.technologies, { title: work.title, context: `${work.type} · ${work.year}`,
+      excerpt: work.summary, href: workHref(work) ?? `/#${work.id}` });
+  }
+  return result;
+}
+
 /** A conventional document model shared by the print view and Word exporter. */
-export function resumeBlocks(data: Resume, profile: ExportProfile): { heading: string; paragraphs: { text: string; bullet?: boolean; strong?: boolean }[] }[] {
+export function resumeBlocks(data: Resume, profile: ExportProfile): { heading: string; paragraphs: { text: string; bullet?: boolean; strong?: boolean; href?: string }[] }[] {
   const enabled = (id: SectionId) => data.sections.some((section) => section.id === id && section.visible);
   const blocks: ReturnType<typeof resumeBlocks> = [];
   if (enabled('experience') && data.experience.length) blocks.push({ heading: 'Professional Experience', paragraphs: data.experience.flatMap((job) => [
     { text: job.company, strong: true },
     ...job.roles.flatMap((role) => [
       { text: `${role.title} | ${displayDate(role.start)} - ${displayDate(role.end)}`, strong: true },
-      { text: role.scope },
+      ...(role.scope ? [{ text: role.scope }] : []),
       ...profile.highlightIds.flatMap((ref) => role.highlights.filter((item) => item.id === ref).map((item) => ({ text: item.text, bullet: true })))
     ])
   ]) });
@@ -128,6 +159,14 @@ export function resumeBlocks(data: Resume, profile: ExportProfile): { heading: s
     ...(work.technologies.length ? [{ text: `Technologies: ${work.technologies.join(', ')}` }] : [])
   ]) });
   if (enabled('expertise') && data.expertise.length) blocks.push({ heading: 'Technical Skills', paragraphs: data.expertise.map((item) => ({ text: `${item.area}: ${item.tools.join(', ')}` })) });
-  if (enabled('education') && data.education.length) blocks.push({ heading: 'Education', paragraphs: data.education.map((item) => ({ text: `${item.qualification} | ${item.institution} | ${item.year}` })) });
+  if (enabled('certifications') && data.certifications.length) blocks.push({ heading: 'Certifications', paragraphs: data.certifications.flatMap((item) => [
+    { text: item.name, strong: true, ...(item.credentialUrl ? { href: item.credentialUrl } : {}) },
+    { text: `${item.issuer}${item.issued ? ` - Issued ${displayDate(item.issued)}` : ''}${item.expires ? ` - Expires ${displayDate(item.expires)}` : ''}` }
+  ]) });
+  if (enabled('education') && data.education.length) blocks.push({ heading: 'Education', paragraphs: data.education.flatMap((item) => [
+    { text: item.qualification, strong: true },
+    { text: `${item.institution} | ${item.year}` },
+    ...item.highlights.map((highlight) => ({ text: highlight, bullet: true }))
+  ]) });
   return blocks;
 }

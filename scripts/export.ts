@@ -1,6 +1,6 @@
 import { mkdir, writeFile, rm, rename } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, ExternalHyperlink } from 'docx';
 import { loadContent, resumeBlocks, type Resume, type ExportProfile } from '../src/lib/content.ts';
 import { serveDist } from './server.ts';
 
@@ -11,7 +11,7 @@ const profiles = requested ? data.exports.profiles.filter((profile) => profile.i
 const escape = (value: string) => value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 
 function profileHtml(data: Resume, profile: ExportProfile): string {
-  return `${data.sample ? '<p class="document-sample">SAMPLE RESUME - Fictional career details and results. Not for job applications.</p>' : ''}<h1>${escape(data.profile.name)}</h1><p class="document-title">${escape(data.profile.title)}</p><p class="document-contact">${escape(data.profile.email)}${data.profile.location ? ` | ${escape(data.profile.location)}` : ''}</p><p class="document-contact">${data.profile.links.map((link) => `<a href="${escape(link.url)}">${escape(link.url)}</a>`).join(' | ')}</p><p class="document-summary">${escape(data.profile.summary)}</p>${resumeBlocks(data, profile).map((block) => `<section class="document-section"><h2>${escape(block.heading)}</h2>${block.paragraphs.map((p) => `<p class="${p.bullet ? 'document-bullet' : p.strong ? 'document-strong' : ''}">${p.bullet ? '• ' : ''}${escape(p.text)}</p>`).join('')}</section>`).join('')}`;
+  return `${data.sample ? '<p class="document-sample">SAMPLE RESUME - Fictional career details and results. Not for job applications.</p>' : ''}<h1>${escape(data.profile.name)}</h1><p class="document-title">${escape(data.profile.title)}</p><p class="document-contact">${escape(data.profile.email)}${data.profile.location ? ` | ${escape(data.profile.location)}` : ''}</p><p class="document-contact">${data.profile.links.map((link) => `<a href="${escape(link.url)}">${escape(link.url)}</a>`).join(' | ')}</p><p class="document-summary">${escape(data.profile.summary)}</p>${resumeBlocks(data, profile).map((block) => `<section class="document-section"><h2>${escape(block.heading)}</h2>${block.paragraphs.map((p) => `<p class="${p.bullet ? 'document-bullet' : p.strong ? 'document-strong' : ''}">${p.bullet ? '• ' : ''}${p.href ? `<a href="${escape(p.href)}">${escape(p.text)}</a>` : escape(p.text)}</p>`).join('')}</section>`).join('')}`;
 }
 
 const staging = 'dist/.exports-temp';
@@ -40,7 +40,9 @@ try {
     for (const block of resumeBlocks(data, profile)) {
       paragraphs.push(new Paragraph({ heading: HeadingLevel.HEADING_1, text: block.heading }));
       for (const item of block.paragraphs) paragraphs.push(new Paragraph({
-        children: [new TextRun({ text: item.text, bold: item.strong ?? false })],
+        children: [item.href
+          ? new ExternalHyperlink({ link: item.href, children: [new TextRun({ text: item.text, bold: item.strong ?? false, color: '111111' })] })
+          : new TextRun({ text: item.text, bold: item.strong ?? false })],
         ...(item.bullet ? { bullet: { level: 0 } } : {}),
         keepNext: item.strong ?? false, spacing: { before: item.strong ? 110 : 0, after: 70 }
       }));

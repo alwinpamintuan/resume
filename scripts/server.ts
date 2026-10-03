@@ -4,8 +4,8 @@ import { resolve, sep, extname } from 'node:path';
 import type { AddressInfo } from 'node:net';
 
 /** Local artifact server used by exports and audits, never deployed. */
-export async function serveDist(port = 0) {
-  const root = resolve('dist');
+export async function serveDist(port = 0, directory = 'dist') {
+  const root = resolve(directory);
   const mime: Record<string, string> = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.avif': 'image/avif', '.gif': 'image/gif', '.woff2': 'font/woff2', '.pdf': 'application/pdf', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.xml': 'application/xml', '.txt': 'text/plain' };
   const server = createServer(async (req, res) => {
     try {

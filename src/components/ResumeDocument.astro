@@ -14,6 +14,6 @@ const blocks = resumeBlocks(content, profile);
   {blocks.map((block) => <section class="document-section"><h2>{block.heading}</h2>
     {block.paragraphs.map((paragraph) => paragraph.bullet
       ? <p class="document-bullet"><span aria-hidden="true">• </span>{paragraph.text}</p>
-      : <p class:list={[paragraph.strong && 'document-strong']}>{paragraph.text}</p>)}
+      : <p class:list={[paragraph.strong && 'document-strong']}>{paragraph.href ? <a href={paragraph.href}>{paragraph.text}</a> : paragraph.text}</p>)}
   </section>)}
 </article>

@@ -2,7 +2,7 @@
 
 A static résumé and project showcase built with Astro and TypeScript. Edit YAML to update career content, generate PDF and Word résumés, and add project pages. Production output runs on GitHub Pages without a server.
 
-> The initial content is fictional. `sample: true` displays notices and disables search indexing. Replace the sample career details, metrics, education, contact information, and project descriptions before using the site for applications.
+The personal résumé contains a minimal set of career details from a saved LinkedIn profile. Projects and experience achievements can be added later. Fictional content is kept in `tests/fixtures/resume.yml` for verification. `sample: true` displays sample notices and disables search indexing when previewing example content.
 
 ## Contents
 
@@ -14,6 +14,7 @@ A static résumé and project showcase built with Astro and TypeScript. Edit YAM
 - [Adding projects](#adding-projects)
 - [Résumé exports](#résumé-exports)
 - [TypeScript guide](#typescript-guide)
+- [Appearance](#appearance)
 - [Validation and verification](#validation-and-verification)
 - [GitHub Pages deployment](#github-pages-deployment)
 - [Independent app repositories](#independent-app-repositories)
@@ -111,8 +112,9 @@ Edit `src/content/resume.yml`. Use spaces for indentation, quote dates and numer
 | `experience` | Optional employers, nested roles, scope, and achievement bullets. |
 | `work` | Optional work/project entries, placement, links, and showcase details. |
 | `expertise` | Optional groups: `area` and nonempty `tools` list. |
+| `certifications` | Optional credentials: `name`, `issuer`, optional `issued`/`expires` dates and `credentialUrl`. |
 | `principles` | Optional entries: `title` and `description`. |
-| `education` | Optional entries: `institution`, `qualification`, `year`. |
+| `education` | Optional entries: `institution`, `qualification`, `year`, and optional `highlights` list. |
 | `exports` | Required default profile ID and nonempty profile list. |
 
 Empty optional sections disappear. Optional collections default to empty lists.
@@ -136,7 +138,7 @@ profile:
 
 ### Sections and order
 
-Supported IDs are `experience`, `selected`, `other`, `expertise`, `principles`, and `education`. Labels are editable, IDs are stable. Reorder the list to reorder the homepage sections; the exported résumé retains conventional heading order.
+Supported IDs are `experience`, `selected`, `other`, `expertise`, `certifications`, `principles`, and `education`. Labels are editable, IDs are stable. Reorder the list to reorder the homepage sections; the exported résumé retains conventional heading order.
 
 ```yaml
 sections:
@@ -147,11 +149,11 @@ sections:
   - { id: education, label: Education }
 ```
 
-Omitting a section or setting `visible: false` removes it from the homepage. For experience, selected work, expertise, and education, it also removes that section from the résumé documents. Hiding a work category does not remove its individual showcase pages; set each entry's `visible: false` to remove its route.
+Omitting a section or setting `visible: false` removes it from the homepage. For experience, selected work, expertise, certifications, and education, it also removes that section from the résumé documents. Hiding a work category does not remove its individual showcase pages; set each entry's `visible: false` to remove its route.
 
 ### Employment and promotions
 
-Keep roles within an employer, newest first. Use `YYYY-MM` dates and `Present` for an ongoing role. Each role requires a title, start/end, and scope. Highlights contain an ID and text.
+Keep roles within an employer, newest first. Use `YYYY-MM` dates and `Present` for an ongoing role. Each role requires a title and start/end dates. Scope and highlights can be omitted for a minimal résumé. Highlights contain an ID, text, and an optional `skills` list.
 
 ```yaml
 experience:
@@ -166,6 +168,7 @@ experience:
         highlights:
           - id: ingestion-ownership
             text: An accurate, specific achievement and its outcome.
+            skills: [Python, Airflow]
       - title: Data Engineer
         start: "2023-06"
         end: "2026-08"
@@ -174,6 +177,36 @@ experience:
 ```
 
 IDs must be unique across employers, achievements, work entries, and impact highlights. Keep them stable because export profiles and section links reference them. When removing or renaming an achievement, update every export profile that references it.
+
+Education entries may include `highlights`, a list of verified research, student leadership, competitive programming, or membership details. These appear beneath the degree on the site and as bullets in the résumé exports. Keep them distinct from employment achievements.
+
+### Certifications
+
+Add credentials under `certifications` in `src/content/resume.yml`, most relevant first. Put `{ id: certifications, label: Certifications }` immediately after `expertise` in `sections`. The résumé, PDF, and Word exports place Certifications after Technical Skills. Empty or hidden certification sections are omitted everywhere.
+
+```yaml
+certifications:
+  - name: Certification name
+    issuer: Issuing organization
+    issued: "2026-04"
+    expires: "2028-04"
+    credentialUrl: https://example.com/credentials/your-credential
+```
+
+Only `name` and `issuer` are required. Dates use `YYYY-MM`; expiry cannot precede issue date. Omit unknown dates, expiry for credentials that do not expire, and links that cannot be verified. Credential links appear on the website and on credential names in the documents. Each exported credential uses a bold name followed by a separate issuer/date line; long verification URLs are not printed. Dates are displayed as supplied; expired credentials are not automatically hidden. Keep a short list of credentials relevant to the target role rather than every course completion.
+
+### Linking skills to evidence
+
+The Technical Skills section reads `expertise[].tools`. Each skill with matching evidence becomes an underlined button. Selecting it opens one “Used in” panel with short excerpts and links. Select another skill to switch panels; select the active skill again, use Close, or press Escape to dismiss it. Close and Escape return keyboard focus to the selected skill.
+
+- Tag an experience achievement using `skills: [Python, Airflow]`, as in the example above. Tag only tools you actually used for that achievement.
+- Projects use their existing `technologies` list; no second set of tags is required.
+- Matching ignores capitalization and surrounding whitespace. Use consistent names; aliases such as `Postgres` and `PostgreSQL` are not automatically merged.
+- Skills without evidence remain plain text. Hidden work and hidden categories contribute no evidence.
+- The source achievement or project must remain visible for its link to appear. An achievement link closes the panel, focuses and highlights the referenced bullet; projects link to their showcase or external destination, falling back to their homepage entry.
+- Without JavaScript, evidence remains available through expandable “Used in” lists. PDF and Word exports retain conventional skill lists.
+
+IDs beginning with `skill-proof-` are reserved for these panels.
 
 ## Adding projects
 
@@ -289,6 +322,12 @@ To add a content field:
 
 Use `.astro` for markup/layout and `.ts` for shared logic. Avoid `any`; infer validated content types or define a small explicit type for an interface. TypeScript is pinned to the 6.0 series supported by the installed Astro checker.
 
+## Appearance
+
+Use the sun/moon toggle in the header to switch between **Light** and **Dark**. It supports clicks and the Space or Enter keys. Initially the site follows your device preference, including changes while the page is open. After you use the toggle, your choice is remembered in this browser using the local storage key `portfolio-theme`. If browser storage is unavailable, the toggle still works for the current page.
+
+Without JavaScript, the site follows the system theme and hides the manual control. Project screenshots retain their original colors. The résumé document view, PDF/Word exports, and printed résumé remain on white.
+
 ## Validation and verification
 
 ```sh
@@ -300,6 +339,8 @@ npm run audit
 ```
 
 Browser checks use port **4322** and start their own static test server, independently of Astro preview. Close another server using that port before running them. Tests check generated pages, links, anchors, accessibility, downloads, PDF text, Word structure, mobile/tablet/desktop widths, printing, keyboard access, and reduced motion.
+
+`npm run test:e2e` also builds sample YAML from `tests/fixtures/resume.yml` into `work/fixture-site` to test evidence interactions without changing personal content. The build uses `PORTFOLIO_CONTENT_FILE` only in its child process; normal builds read `src/content/resume.yml`. Evidence tests cover panel switching, keyboard dismissal, mobile navigation, accessibility, and the fallback without JavaScript.
 
 Responsive screenshots are written to `work/screenshots/`. Lighthouse reports are written to `work/audits/`. Audit scores target at least 95 in each category; sample mode intentionally affects SEO through `noindex`. The audit excludes that expected SEO effect while sample mode is enabled. Audits are local checks, not a guarantee of every user's field performance.
 
