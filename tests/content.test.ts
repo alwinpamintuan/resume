@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { sitePath } from '../src/lib/urls.ts';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { stringify, parse } from 'yaml';
@@ -88,14 +89,14 @@ test('skill evidence joins explicit achievement tags and project technologies', 
   const data = parseContent(source);
   const airflow = skillEvidence(data).get('airflow')!;
   assert.equal(airflow.length, 2);
-  assert.equal(airflow[0]!.href, '/#ingestion-recovery');
-  assert.equal(airflow[1]!.href, '/reliable-ingestion/');
+  assert.equal(airflow[0]!.href, sitePath('#ingestion-recovery'));
+  assert.equal(airflow[1]!.href, sitePath('reliable-ingestion/'));
   assert.equal(skillEvidence(data).has('terraform'), false);
 });
 
 test('skill matching ignores capitalization and whitespace without duplicate evidence', () => {
   const data = parseContent(changed((d) => { d.experience[0]!.roles[1]!.highlights[1]!.skills = [' PYTHON ', 'python']; }));
-  assert.equal(skillEvidence(data).get('python')!.filter((item) => item.href === '/#ingestion-recovery').length, 1);
+  assert.equal(skillEvidence(data).get('python')!.filter((item) => item.href === sitePath('#ingestion-recovery')).length, 1);
 });
 
 test('hidden work and sections do not expose skill evidence', () => {
@@ -108,13 +109,15 @@ test('hidden work and sections do not expose skill evidence', () => {
 });
 
 
-test('education highlights remain under Education and old entries still validate', () => {
+test('education honors and highlights remain under Education and old entries still validate', () => {
   const legacy = parseContent(source);
   assert.deepEqual(legacy.education[0]!.highlights, []);
-  const data = parseContent(changed((d) => { d.education[0]!.highlights = ['Student organization leadership', 'Competitive programming participation']; }));
+  assert.equal(legacy.education[0]!.honors, undefined);
+  const data = parseContent(changed((d) => { d.education[0]!.honors = 'Magna cum laude'; d.education[0]!.highlights = ['Student organization leadership', 'Competitive programming participation']; }));
   const blocks = resumeBlocks(data, data.exports.profiles[0]!);
   const education = blocks.find((block) => block.heading === 'Education')!;
   assert.deepEqual(education.paragraphs.slice(2), [
+    { text: 'Magna cum laude' },
     { text: 'Student organization leadership', bullet: true },
     { text: 'Competitive programming participation', bullet: true }
   ]);

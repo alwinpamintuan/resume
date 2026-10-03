@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse } from 'yaml';
 import { z } from 'zod';
+import { sitePath } from './urls.ts';
 
 const text = z.string().trim().min(1);
 const id = text.regex(/^[a-z][a-z0-9-]*$/, 'Use lowercase letters, numbers, and hyphens');
@@ -33,7 +34,7 @@ export const contentSchema = z.object({
   certifications: z.array(z.object({ name: text, issuer: text, issued: date.optional(),
     expires: date.optional(), credentialUrl: webUrl.optional() })).default([]),
   principles: z.array(z.object({ title: text, description: text })).default([]),
-  education: z.array(z.object({ institution: text, qualification: text, year: text, highlights: z.array(text).default([]) })).default([]),
+  education: z.array(z.object({ institution: text, qualification: text, year: text, honors: text.optional(), highlights: z.array(text).default([]) })).default([]),
   exports: z.object({ default: id, profiles: z.array(z.object({ id, label: text,
     highlightIds: z.array(id), workIds: z.array(id) })).min(1) })
 }).superRefine((data, ctx) => {
@@ -113,7 +114,7 @@ export function displayDate(value: string): string {
 }
 
 export function workHref(work: Work): string | undefined {
-  return work.slug ? `/${work.slug}/` : work.destination;
+  return work.slug ? sitePath(`${work.slug}/`) : work.destination;
 }
 
 export const skillKey = (value: string) => value.trim().toLocaleLowerCase('en');
@@ -130,13 +131,13 @@ export function skillEvidence(data: Resume): Map<string, SkillEvidence[]> {
   };
   if (enabled('experience')) for (const job of data.experience) for (const role of job.roles) {
     for (const highlight of role.highlights) add(highlight.skills, {
-      title: job.company, context: role.title, excerpt: highlight.text, href: `/#${highlight.id}`,
+      title: job.company, context: role.title, excerpt: highlight.text, href: sitePath(`#${highlight.id}`),
     });
   }
   for (const work of data.work) {
     if (!work.visible || !enabled(work.placement === 'selected' ? 'selected' : 'other')) continue;
     add(work.technologies, { title: work.title, context: `${work.type} · ${work.year}`,
-      excerpt: work.summary, href: workHref(work) ?? `/#${work.id}` });
+      excerpt: work.summary, href: workHref(work) ?? sitePath(`#${work.id}`) });
   }
   return result;
 }
@@ -166,6 +167,7 @@ export function resumeBlocks(data: Resume, profile: ExportProfile): { heading: s
   if (enabled('education') && data.education.length) blocks.push({ heading: 'Education', paragraphs: data.education.flatMap((item) => [
     { text: item.qualification, strong: true },
     { text: `${item.institution} | ${item.year}` },
+    ...(item.honors ? [{ text: item.honors }] : []),
     ...item.highlights.map((highlight) => ({ text: highlight, bullet: true }))
   ]) });
   return blocks;

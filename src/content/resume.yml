@@ -5,7 +5,7 @@ sample: false
 profile:
   name: John Alwin Pamintuan
   title: Data Engineer
-  summary: Data Engineer at Globe Telecom with experience across data platforms, orchestration, and transformation.
+  summary: Engineering dependable data.
   location: Makati City · Metro Manila
   email: alwinpamintuan@gmail.com
   documentName: Resume_JohnAlwinPamintuan_DataEngineer
@@ -77,7 +77,8 @@ principles: []
 
 education:
   - institution: University of the Philippines Los Baños
-    qualification: Bachelor of Science in Computer Science (magna cum laude)
+    qualification: Bachelor of Science in Computer Science
+    honors: Magna cum laude
     year: "2022"
 
 exports:

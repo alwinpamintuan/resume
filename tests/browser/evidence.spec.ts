@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from '../../src/lib/urls.ts';
 import { AxeBuilder } from '@axe-core/playwright';
 import { serveDist } from '../../scripts/server.ts';
 
@@ -39,7 +40,7 @@ test('skills reveal evidence, switch previews, and restore keyboard focus', asyn
   await expect(visiblePanel).toContainText('Northstar Analytics');
   await expect(visiblePanel).toContainText('Reliable by design');
   await expect(visiblePanel.locator('li')).toHaveCount(2);
-  await expect(visiblePanel.locator('a').first()).toHaveAttribute('href', '/#ingestion-recovery');
+  await expect(visiblePanel.locator('a').first()).toHaveAttribute('href', sitePath('#ingestion-recovery'));
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(results.violations).toEqual([]);
   await visiblePanel.locator('a').first().focus();

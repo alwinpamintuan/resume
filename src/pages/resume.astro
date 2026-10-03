@@ -1,11 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { sitePath } from '../lib/urls';
 import ResumeDocument from '../components/ResumeDocument.astro';
 import { loadContent } from '../lib/content';
 const content = loadContent();
 const profile = content.exports.profiles.find((item) => item.id === content.exports.default)!;
 ---
 <Layout content={content} title="Résumé" noindex document>
-  <main id="main"><div class="document-controls" id="top"><a class="text-link" href="/">← Back to portfolio</a><div><a href={`/downloads/${content.profile.documentName}.pdf`} download>PDF ↓</a><a href={`/downloads/${content.profile.documentName}.docx`} download>Word ↓</a><button type="button" id="print-resume">Print</button></div></div><ResumeDocument content={content} profile={profile} /></main>
+  <main id="main"><div class="document-controls" id="top"><a class="text-link" href={sitePath()}>← Back to résumé</a><div><a href={sitePath(`downloads/${content.profile.documentName}.pdf`)} download>PDF ↓</a><a href={sitePath(`downloads/${content.profile.documentName}.docx`)} download>Word ↓</a><button type="button" id="print-resume">Print</button></div></div><ResumeDocument content={content} profile={profile} /></main>
 </Layout>
 <script>document.querySelector('#print-resume')?.addEventListener('click', () => window.print());</script>

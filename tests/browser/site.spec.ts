@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from '../../src/lib/urls.ts';
 import { AxeBuilder } from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
@@ -6,7 +7,7 @@ import JSZip from 'jszip';
 import { loadContent } from '../../src/lib/content.ts';
 
 const content = loadContent();
-const routes = ['/', '/resume/', ...content.work.filter((w) => w.visible && w.slug).map((w) => `/${w.slug}/`), '/404.html'];
+const routes = ['/', '/resume/', ...content.work.filter((w) => w.visible && w.slug).map((w) => `/${w.slug}/`), '/404.html'].map((path) => sitePath(path));
 
 for (const route of routes) test(`route and accessibility: ${route}`, async ({ page }) => {
   const errors: string[] = [];
@@ -37,27 +38,27 @@ test('local links, anchors, and assets resolve', async ({ page, request }) => {
 test('responsive layouts and screenshots', async ({ page }) => {
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 960 });
-    for (const route of routes.filter((route) => route !== '/404.html')) {
+    for (const route of routes.filter((route) => route !== sitePath('404.html'))) {
       await page.goto(route); await page.evaluate(() => document.fonts.ready);
       await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} at ${width}px`).toBeTruthy();
-      await page.screenshot({ path: `work/screenshots/${route === '/' ? 'home' : route.replaceAll('/', '')}-${width}.png`, fullPage: true });
+      await page.screenshot({ path: `work/screenshots/${route === sitePath() ? 'home' : route.replaceAll('/', '')}-${width}.png`, fullPage: true });
     }
   }
 });
 
 test('content remains visible without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage(); await page.goto('http://127.0.0.1:4322/');
+  const page = await context.newPage(); await page.goto(`http://127.0.0.1:4322${sitePath()}`);
   await expect(page.locator('#intro-title')).toHaveText(content.profile.name);
   await expect(page.getByRole('link', { name: 'Download résumé' })).toBeVisible();
   const showcase = content.work.find((work) => work.visible && work.slug);
-  if (showcase) { await page.goto(`http://127.0.0.1:4322/${showcase.slug}/`); await expect(page.locator('h1')).toHaveText(showcase.title); }
+  if (showcase) { await page.goto(`http://127.0.0.1:4322${sitePath(`${showcase.slug}/`)}`); await expect(page.locator('h1')).toHaveText(showcase.title); }
   await context.close();
 });
 
 test('keyboard skip link and reduced motion', async ({ page }) => {
-  await page.goto('/'); await page.keyboard.press('Tab');
+  await page.goto(sitePath()); await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
@@ -66,20 +67,20 @@ test('keyboard skip link and reduced motion', async ({ page }) => {
 
 test('long names and titles stay within narrow layouts', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 850 });
-  await page.goto('/');
+  await page.goto(sitePath());
   await page.locator('.hero h1 span').last().evaluate((element) => { element.textContent = 'Averylongprofessionalsurnamethatmustwrap'; });
   await page.locator('.role-heading h4').first().evaluate((element) => { element.textContent = 'Senior Data Platform and Infrastructure Engineering Specialist'; });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   const showcase = content.work.find((work) => work.visible && work.slug);
   if (showcase) {
-    await page.goto(`/${showcase.slug}/`);
+    await page.goto(sitePath(`${showcase.slug}/`));
     await page.locator('h1').evaluate((element) => { element.textContent = 'A comprehensive schema inspection and comparison utility'; });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   }
 });
 
 test('home printing uses conventional résumé', async ({ page }) => {
-  await page.goto('/'); await page.emulateMedia({ media: 'print' });
+  await page.goto(sitePath()); await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.hero')).toBeHidden();
   await expect(page.locator('.print-only .resume-document')).toBeVisible();
 });

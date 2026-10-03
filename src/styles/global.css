@@ -28,17 +28,14 @@ h1, h2, h3, h4 { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
 .theme-icon { position: relative; width: 16px; height: 16px; pointer-events: none; transition: color 180ms ease; }
 .theme-sun, .theme-control[data-dark="true"] .theme-moon { color: var(--accent); }
 .theme-control[data-dark="true"] .theme-sun { color: var(--muted); }
-.brand { text-decoration: none; display: flex; align-items: center; gap: 15px; }
-.brand-mark { font: 400 28px/1 var(--sans); letter-spacing: -.09em; padding: 4px 0; }
-.brand-mark span { color: var(--accent); }
-.brand-caption { display: block; font-size: 11px; color: var(--muted); }
+.site-home { text-decoration: none; font-size: 12px; color: var(--muted); padding-block: 6px; }
 .site-header nav { display: flex; gap: 25px; font-size: 12px; color: var(--muted); }
 .site-header nav a { text-decoration: none; position: relative; }
 .site-header nav a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 100%; height: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 180ms ease; }
 .site-header nav a:hover::after, .site-header nav a:focus-visible::after { transform: scaleX(1); }
 .hero { position: relative; padding: 64px 0 56px; margin: 0; background: transparent; }
 .hero::after { content: ''; position: absolute; width: 10px; height: 10px; right: 0; top: 64px; border-top: 1px solid var(--dot); border-right: 1px solid var(--dot); pointer-events: none; }
-.hero h1 { font: 400 clamp(32px, 4.5vw, 52px)/1.15 var(--sans); letter-spacing: -.065em; text-wrap: balance; max-width: 850px; margin-top: 22px; }
+.hero h1 { font: 400 clamp(32px, 4.5vw, 52px)/1.15 var(--sans); letter-spacing: -.065em; text-wrap: balance; max-width: 850px; }
 .profile-line { margin-top: 16px; color: var(--muted); font-size: 12px; }
 .profile-line span { padding-inline: 5px; }
 .intro { font-size: 16px; line-height: 1.85; max-width: 650px; text-wrap: pretty; margin-top: 26px; }
@@ -61,7 +58,6 @@ h1, h2, h3, h4 { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
 .section-rail h2 { font-size: 11px; line-height: 1.7; font-weight: 400; color: var(--muted); margin-top: 10px; }
 .portfolio-section .section-rail h2::before { content: none; }
 .section-index { display: block; font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.hero-label { font-size: 10px; }
 .section-content { min-width: 0; }
 .experience + .experience { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--line); }
 .company-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
@@ -124,6 +120,7 @@ h1, h2, h3, h4 { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
 .education { display: grid; grid-template-columns: 1fr auto; gap: 5px 20px; }
 .education h3 { font-size: 14px; }
 .education p { font-size: 13px; color: var(--muted); grid-column: 1; }
+.education p.education-honors { font-size: 12px; }
 .education .meta { grid-column: 2; grid-row: 1; }
 .education + .education { margin-top: 20px; }
 .education-highlights { grid-column: 1 / -1; padding-left: 18px; margin-top: 8px; color: var(--muted); font-size: 13px; }
@@ -166,7 +163,6 @@ h1, h2, h3, h4 { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
   .hero { padding: 40px 0 36px; margin: 0; }
   .hero h1 { font-size: 32px; }
   .hero::after { top: 40px; }
-  .brand-caption { display: none; }
   .section-rail { display: flex; align-items: baseline; gap: 12px; }
   .section-rail h2 { margin-top: 0; }
   .profile-line { font-size: 12px; }

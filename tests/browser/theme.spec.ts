@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from '../../src/lib/urls.ts';
 import { AxeBuilder } from '@axe-core/playwright';
 import { loadContent } from '../../src/lib/content.ts';
 
 test.use({ colorScheme: 'dark' });
 const data = loadContent();
-const routes = ['/', '/resume/', ...data.work.filter((work) => work.visible && work.slug).map((work) => `/${work.slug}/`), '/404.html'];
+const routes = ['/', '/resume/', ...data.work.filter((work) => work.visible && work.slug).map((work) => `/${work.slug}/`), '/404.html'].map((path) => sitePath(path));
 
 test('dark mode follows the system and keeps all routes accessible', async ({ page }) => {
   for (const route of routes) {
@@ -16,7 +17,7 @@ test('dark mode follows the system and keeps all routes accessible', async ({ pa
   }
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 960 });
-    await page.goto('/');
+    await page.goto(sitePath());
     const skill = page.locator('.skill-trigger').first();
     if (await skill.count()) await skill.click();
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
@@ -29,7 +30,7 @@ test('dark mode follows the system and keeps all routes accessible', async ({ pa
 });
 
 test('the toggle follows system changes until a manual choice, with keyboard and persistence support', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(sitePath());
   const toggle = page.getByRole('switch', { name: 'Dark mode' });
   await expect(toggle).toBeChecked();
   await page.emulateMedia({ colorScheme: 'light' });
@@ -39,7 +40,7 @@ test('the toggle follows system changes until a manual choice, with keyboard and
   await toggle.click();
   await expect(toggle).not.toBeChecked();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.goto('/resume/');
+  await page.goto(sitePath('resume/'));
   await expect(toggle).not.toBeChecked();
   expect(await page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('light');
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(243, 242, 236)');
@@ -58,11 +59,11 @@ test('the toggle follows system changes until a manual choice, with keyboard and
 test('dark preference works without JavaScript and printing remains white', async ({ browser, page }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });
   const fallback = await context.newPage();
-  await fallback.goto('http://127.0.0.1:4322/');
+  await fallback.goto(`http://127.0.0.1:4322${sitePath()}`);
   expect(await fallback.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 32, 30)');
   await expect(fallback.getByRole('switch', { name: 'Dark mode' })).toHaveCount(0);
   await context.close();
-  await page.goto('/resume/');
+  await page.goto(sitePath('resume/'));
   expect(await page.locator('.resume-document').evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(255, 255, 255)');
   await page.emulateMedia({ media: 'print' });
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)');
@@ -77,7 +78,7 @@ test('theme selection still works when browser storage is unavailable', async ({
     Storage.prototype.setItem = () => { throw new DOMException('Blocked', 'SecurityError'); };
     Storage.prototype.removeItem = () => { throw new DOMException('Blocked', 'SecurityError'); };
   });
-  await page.goto('/');
+  await page.goto(sitePath());
   await page.getByRole('switch', { name: 'Dark mode' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.getByRole('switch', { name: 'Dark mode' }).click();
