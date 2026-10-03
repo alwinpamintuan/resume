@@ -10,7 +10,7 @@ test('dark mode follows the system and keeps all routes accessible', async ({ pa
   for (const route of routes) {
     await page.goto(route);
     await expect(page.getByRole('switch', { name: 'Dark mode' })).toBeChecked();
-    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 35, 34)');
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 32, 30)');
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     expect(results.violations, route).toEqual([]);
   }
@@ -42,7 +42,7 @@ test('the toggle follows system changes until a manual choice, with keyboard and
   await page.goto('/resume/');
   await expect(toggle).not.toBeChecked();
   expect(await page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('light');
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(250, 250, 248)');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(243, 242, 236)');
   await toggle.focus();
   await toggle.press('Space');
   await expect(toggle).toBeChecked();
@@ -59,7 +59,7 @@ test('dark preference works without JavaScript and printing remains white', asyn
   const context = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });
   const fallback = await context.newPage();
   await fallback.goto('http://127.0.0.1:4322/');
-  expect(await fallback.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 35, 34)');
+  expect(await fallback.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 32, 30)');
   await expect(fallback.getByRole('switch', { name: 'Dark mode' })).toHaveCount(0);
   await context.close();
   await page.goto('/resume/');
@@ -81,6 +81,6 @@ test('theme selection still works when browser storage is unavailable', async ({
   await page.getByRole('switch', { name: 'Dark mode' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.getByRole('switch', { name: 'Dark mode' }).click();
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 35, 34)');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 32, 30)');
   expect(errors).toEqual([]);
 });

@@ -1,8 +1,4 @@
 ---
-import '@fontsource/inter/latin-400.css';
-import '@fontsource/inter/latin-500.css';
-import '@fontsource/inter/latin-600.css';
-import interFont from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
 import '../styles/global.css';
 import type { Resume } from '../lib/content';
 import ThemeToggle from '../components/ThemeToggle.astro';
@@ -18,7 +14,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#fafaf8" />
+    <meta name="theme-color" content="#f3f2ec" />
     <script is:inline>
       try {
         const theme = localStorage.getItem('portfolio-theme');
@@ -28,7 +24,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     { (content.sample || noindex) && <meta name="robots" content="noindex, nofollow" /> }
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preload" href={interFont} as="font" type="font/woff2" crossorigin />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -40,7 +35,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     {content.sample && <div class="sample-banner"><span class="sample-dot" aria-hidden="true"></span> Sample edition <span class="sample-note">— career details, projects, and results are fictional.</span></div>}
     <div class="shell">
       <header class="site-header">
-        <a class="brand" href="/" aria-label={`${content.profile.name}, ${content.profile.title}, home`}><span class="brand-mark" aria-hidden="true">ap<span>.</span></span><span class="brand-caption">{content.profile.title}</span></a>
+        <a class="brand" href="/" aria-label={`${content.profile.name}, ${content.profile.title}, home`}><span class="brand-mark" aria-hidden="true">ap<span>.</span></span><span class="brand-caption">portfolio</span></a>
         <div class="header-actions"><nav aria-label="Primary">{content.sections.some((section) => section.id === 'experience' && section.visible) && content.experience.length > 0 && <a href="/#experience">Experience</a>}{content.sections.some((section) => section.id === 'selected' && section.visible) && content.work.some((work) => work.visible && work.placement === 'selected') && <a href="/#selected">Work</a>}<a class="header-contact" href={`mailto:${content.profile.email}`}>Contact</a></nav><ThemeToggle /></div>
       </header>
       <slot />

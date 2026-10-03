@@ -18,10 +18,11 @@ const sections = content.sections.filter((section) => section.visible && populat
 <Layout content={content}>
   <main id="main" class="portfolio-main">
     <section class="hero" id="top" aria-labelledby="intro-title">
+      <p class="hero-label eyebrow">{content.profile.title} / portfolio</p>
       <div class="hero-title"><h1 id="intro-title"><span>{content.profile.name}</span></h1><p class="profile-line">{content.profile.title}{content.profile.location && <> <span aria-hidden="true">·</span> {content.profile.location}</>}</p><p class="intro">{content.profile.summary}</p><div class="hero-actions"><a class="text-link" href="/resume/">View résumé</a><a class="text-link" href={`/downloads/${content.profile.documentName}.pdf`} download>Download résumé <span aria-hidden="true">↓</span></a></div><div class="social-links">{content.profile.links.map((link) => <a href={link.url}><SocialIcon name={linkIcon(link.url)} />{link.label}</a>)}<a href={`mailto:${content.profile.email}`}><SocialIcon name="mail" />Email</a></div></div>
     </section>
-    {sections.map((section) => <section class:list={['resume-section', 'portfolio-section', `section-${section.id}`]} id={section.id} aria-labelledby={`${section.id}-title`}>
-      <div class="section-rail"><h2 id={`${section.id}-title`}>{section.label}</h2></div>
+    {sections.map((section, index) => <section class:list={['resume-section', 'portfolio-section', `section-${section.id}`]} id={section.id} aria-labelledby={`${section.id}-title`}>
+      <div class="section-rail"><span class="section-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h2 id={`${section.id}-title`}>{section.label}</h2></div>
       <div class="section-content">
         {section.id === 'experience' && content.experience.map((job) => <article class="experience" id={job.id}><div class="company-heading"><h3>{job.company}</h3>{job.location && <span class="meta">{job.location}</span>}</div><div class="roles">{job.roles.map((role) => <div class="role"><div class="role-heading"><h4>{role.title}</h4><span class="meta">{displayDate(role.start)} — {displayDate(role.end)}</span></div>{role.scope && <p>{role.scope}</p>}{role.highlights.length > 0 && <ul>{role.highlights.map((highlight) => <li id={highlight.id}>{highlight.text}</li>)}</ul>}</div>)}</div></article>)}
         {section.id === 'selected' && selected.map((work) => <article class="selected-work" id={work.id}><div class="work-copy"><div class="work-meta"><span class="eyebrow">{work.type}</span><span class="meta">{work.year}</span></div><h3>{workHref(work) ? <a href={workHref(work)}>{work.title}<span aria-hidden="true"> ↗</span></a> : work.title}</h3><p>{work.summary}</p><ul class="tags" aria-label="Technologies">{work.technologies.map((technology) => <li>{technology}</li>)}</ul>{workHref(work) && <a class="text-link" href={workHref(work)}>Read notes <span aria-hidden="true">→</span></a>}</div>{work.details?.screenshot ? <figure class="project-screenshot"><img src={work.details.screenshot.src} alt={work.details.screenshot.alt} width="1000" height="580" loading="lazy" decoding="async" /></figure> : work.details?.pipeline && <Pipeline pipeline={work.details.pipeline} />}</article>)}
@@ -36,17 +37,3 @@ const sections = content.sections.filter((section) => section.visible && populat
     <div class="print-only"><ResumeDocument content={content} profile={content.exports.profiles.find((item) => item.id === content.exports.default)!} /></div>
   </main>
 </Layout>
-<script>
-  const motion = matchMedia('(prefers-reduced-motion: reduce)');
-  if (!motion.matches && 'IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('arrived');
-        observer.unobserve(entry.target);
-      }
-    }, { threshold: 0.08 });
-    document.querySelectorAll('.portfolio-section').forEach((section) => observer.observe(section));
-    motion.addEventListener('change', () => observer.disconnect(), { once: true });
-  }
-</script>
