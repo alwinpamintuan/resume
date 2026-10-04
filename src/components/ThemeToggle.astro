@@ -7,7 +7,7 @@
   if (control) {
     const root = document.documentElement;
     const system = matchMedia('(prefers-color-scheme: dark)');
-    let preference = root.dataset.theme ?? 'system';
+    let preference = 'system';
     const valid = (value: string | null) => value === 'light' || value === 'dark' ? value : 'system';
     const apply = (value: string) => {
       preference = valid(value);
@@ -23,13 +23,7 @@
     control.hidden = false;
     control.addEventListener('click', () => {
       apply(control.dataset.dark === 'true' ? 'light' : 'dark');
-      try {
-        localStorage.setItem('portfolio-theme', preference);
-      } catch { /* The selected theme still works when storage is unavailable. */ }
     });
     system.addEventListener('change', () => { if (preference === 'system') apply('system'); });
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'portfolio-theme' || event.key === null) apply(valid(event.newValue));
-    });
   }
 </script>

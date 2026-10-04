@@ -16,12 +16,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f3f2ec" />
-    <script is:inline>
-      try {
-        const theme = localStorage.getItem('portfolio-theme');
-        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-      } catch { /* CSS follows the system preference if storage is unavailable. */ }
-    </script>
     { (content.sample || noindex) && <meta name="robots" content="noindex, nofollow" /> }
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={sitePath('favicon.svg')} />

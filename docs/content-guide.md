@@ -326,7 +326,7 @@ Use `.astro` for markup/layout and `.ts` for shared logic. Avoid `any`; infer va
 
 The résumé site shares IO's design language: warm paper (`#f3f2ec`), monochrome ink, system monospace typography, fine rules, and generous whitespace. A small Résumé link in the header returns to the introduction. The introduction is open, sections use small sequential indices, and projects read as flat entries. The dark palette uses the same neutral tones. Keep these screen styles separate from the conventional white résumé document and print layout.
 
-Use the sun/moon toggle in the header to switch between **Light** and **Dark**. It supports clicks and the Space or Enter keys. Initially the site follows your device preference, including changes while the page is open. After you use the toggle, your choice is remembered in this browser using the local storage key `portfolio-theme`. If browser storage is unavailable, the toggle still works for the current page.
+Use the sun/moon toggle in the header to switch between **Light** and **Dark**. It supports clicks and the Space or Enter keys. Each page starts with your browser preference and follows changes while the page is open until you use the toggle. A manual choice applies only to the current page; navigating or reloading restores browser settings.
 
 Without JavaScript, the site follows the system theme and hides the manual control. Project screenshots retain their original colors. The résumé document view, PDF/Word exports, and printed résumé remain on white.
 

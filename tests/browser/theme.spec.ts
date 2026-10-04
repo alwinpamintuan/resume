@@ -29,33 +29,44 @@ test('dark mode follows the system and keeps all routes accessible', async ({ pa
   }
 });
 
-test('the toggle follows system changes until a manual choice, with keyboard and persistence support', async ({ page }) => {
+test('the toggle starts from browser settings on every load and supports keyboard overrides', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('portfolio-theme', 'light'));
   await page.goto(sitePath());
   const toggle = page.getByRole('switch', { name: 'Dark mode' });
+  const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   await expect(toggle).toBeChecked();
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(toggle).not.toBeChecked();
+  await expect.poll(background).toBe('rgb(243, 242, 236)');
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(toggle).toBeChecked();
   await toggle.click();
   await expect(toggle).not.toBeChecked();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.goto(sitePath('resume/'));
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.emulateMedia({ colorScheme: 'dark' });
   await expect(toggle).not.toBeChecked();
-  expect(await page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('light');
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(243, 242, 236)');
+  await expect.poll(background).toBe('rgb(243, 242, 236)');
+  await page.goto(sitePath('resume/'));
+  await expect(toggle).toBeChecked();
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
   await toggle.focus();
   await toggle.press('Space');
+  await expect(toggle).not.toBeChecked();
+  await toggle.press('Enter');
   await expect(toggle).toBeChecked();
-  await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(toggle).toBeChecked();
-  await toggle.press('Enter');
+  await page.reload();
   await expect(toggle).not.toBeChecked();
-  expect(await page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('light');
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+  await expect.poll(background).toBe('rgb(243, 242, 236)');
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#f3f2ec');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(toggle).toBeChecked();
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#20201e');
 });
-
 test('dark preference works without JavaScript and printing remains white', async ({ browser, page }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });
   const fallback = await context.newPage();
