@@ -43,7 +43,7 @@ work: []
 
 expertise:
   - area: Data platforms
-    tools: [Databricks, Azure Databricks, Snowflake]
+    tools: [Databricks, Snowflake]
   - area: Cloud platforms
     tools: [Google Cloud, AWS]
   - area: Orchestration & ingestion
@@ -59,7 +59,7 @@ certifications:
     issued: "2026-04"
     expires: "2028-04"
     credentialUrl: https://credentials.databricks.com/2e3e8f41-9f83-47cd-8c37-71a99b884b28
-  - name: Generative AI Leader Certification
+  - name: Google Generative AI Leader Certification
     issuer: Google
     issued: "2026-06"
     expires: "2029-06"
