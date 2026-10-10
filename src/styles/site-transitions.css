@@ -1,0 +1,14 @@
+/* Keep this file in sync with the companion /resume/ portfolio. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .header-bar, .site-header { view-transition-name: site-header; }
+  .header-identity h1, .hero h1 { view-transition-name: site-name; }
+  ::view-transition-group(*) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+  ::view-transition-old(root) { animation: site-page-out 180ms ease both; }
+  ::view-transition-new(root) { animation: site-page-in 320ms cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes site-page-out { to { opacity: 0; } }
+@keyframes site-page-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}

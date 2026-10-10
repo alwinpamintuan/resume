@@ -29,7 +29,7 @@ test('dark mode follows the system and keeps all routes accessible', async ({ pa
   }
 });
 
-test('the toggle starts from browser settings on every load and supports keyboard overrides', async ({ page }) => {
+test('the toggle follows system settings until a shared preference is chosen', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('portfolio-theme', 'light'));
   await page.goto(sitePath());
   const toggle = page.getByRole('switch', { name: 'Dark mode' });
@@ -49,23 +49,23 @@ test('the toggle starts from browser settings on every load and supports keyboar
   await expect(toggle).not.toBeChecked();
   await expect.poll(background).toBe('rgb(243, 242, 236)');
   await page.goto(sitePath('resume/'));
-  await expect(toggle).toBeChecked();
-  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+  await expect(toggle).not.toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await toggle.focus();
   await toggle.press('Space');
-  await expect(toggle).not.toBeChecked();
+  await expect(toggle).toBeChecked();
   await toggle.press('Enter');
-  await expect(toggle).toBeChecked();
+  await expect(toggle).not.toBeChecked();
   await page.emulateMedia({ colorScheme: 'light' });
-  await expect(toggle).toBeChecked();
+  await expect(toggle).not.toBeChecked();
   await page.reload();
   await expect(toggle).not.toBeChecked();
-  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect.poll(background).toBe('rgb(243, 242, 236)');
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#f3f2ec');
   await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(toggle).toBeChecked();
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#20201e');
+  await expect(toggle).not.toBeChecked();
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#f3f2ec');
 });
 test('dark preference works without JavaScript and printing remains white', async ({ browser, page }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });

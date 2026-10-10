@@ -1,5 +1,10 @@
 ---
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import monoRegular from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
 import '../styles/global.css';
+import '../styles/site-chrome.css';
+import '../styles/site-transitions.css';
 import type { Resume } from '../lib/content';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import { sitePath } from '../lib/urls';
@@ -13,10 +18,26 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="preload" href={monoRegular} as="font" type="font/woff2" crossorigin="anonymous" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f3f2ec" />
     { (content.sample || noindex) && <meta name="robots" content="noindex, nofollow" /> }
+    <script is:inline>
+      (() => {
+        let preference;
+        try {
+          const saved = localStorage.getItem('personal-site:theme');
+          if (saved === 'light' || saved === 'dark') preference = saved;
+        } catch { /* Storage restrictions do not prevent theme selection. */ }
+        const theme = preference ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (preference) {
+          document.documentElement.dataset.theme = preference;
+          document.documentElement.dataset.themePreference = preference;
+        }
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#20201e' : '#f3f2ec');
+      })();
+    </script>
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={sitePath('favicon.svg')} />
     <meta property="og:title" content={pageTitle} />
@@ -31,7 +52,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <div class="shell">
       <header class="site-header">
         <a class="site-home" href={sitePath('#top')}>Résumé</a>
-        <div class="header-actions"><nav aria-label="Primary">{content.sections.some((section) => section.id === 'experience' && section.visible) && content.experience.length > 0 && <a href={sitePath('#experience')}>Experience</a>}{content.sections.some((section) => section.id === 'selected' && section.visible) && content.work.some((work) => work.visible && work.placement === 'selected') && <a href={sitePath('#selected')}>Work</a>}<a class="header-contact" href={`mailto:${content.profile.email}`}>Contact</a></nav><ThemeToggle /></div>
+        <div class="header-actions"><nav class="header-nav" aria-label="Primary"><a href={new URL("/", Astro.site).href}>Projects</a>{content.sections.some((section) => section.id === 'experience' && section.visible) && content.experience.length > 0 && <a href={sitePath('#experience')}>Experience</a>}{content.sections.some((section) => section.id === 'selected' && section.visible) && content.work.some((work) => work.visible && work.placement === 'selected') && <a href={sitePath('#selected')}>Work</a>}<a class="header-contact" href={`mailto:${content.profile.email}`}>Contact</a></nav><ThemeToggle /></div>
       </header>
       <slot />
       <footer class="site-footer"><a href={sitePath()}>{content.profile.name}</a><a href="#top">Back to top <span aria-hidden="true">↑</span></a></footer>
