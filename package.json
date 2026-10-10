@@ -30,12 +30,12 @@
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
-    "@types/node": "^24.19.1",
+    "@types/node": "^26.6.3",
     "chrome-launcher": "^1.2.2",
     "jszip": "^3.10.2",
     "lighthouse": "^13.5.0",
     "pdfjs-dist": "^6.3.289",
     "tsx": "^4.23.15",
-    "typescript": "~6.0.3"
+    "typescript": "~7.0.2"
   }
 }
