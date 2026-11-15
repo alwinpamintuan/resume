@@ -85,3 +85,20 @@ test('evidence has a usable fallback without JavaScript', async ({ browser }) =>
   await expect(details.getByText('Reliable by design', { exact: false })).toBeVisible();
   await context.close();
 });
+
+test('showcase navigation clears the sticky header and footer stays absent in print', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(server.url + '/reliable-ingestion/');
+  await expect(page.locator('.site-footer .contact-label')).toHaveText(['GitHub', 'LinkedIn', 'Email']);
+  await expect(page.locator('.site-footer .contact-tile')).toHaveCount(3);
+  await page.getByRole('navigation', { name: 'On this page' }).getByRole('link', { name: 'Problem', exact: true }).click();
+  await expect(page).toHaveURL(/#problem$/);
+  const headingTop = (await page.locator('#problem').boundingBox())!.y;
+  const headerHeight = (await page.locator('.site-header').boundingBox())!.height;
+  expect(headingTop).toBeGreaterThanOrEqual(headerHeight);
+  expect(headingTop).toBeLessThan(headerHeight + 26);
+  await page.getByRole('link', { name: 'Back to top', exact: true }).click();
+  await expect(page.locator('.site-header')).toBeVisible();
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.site-footer')).toBeHidden();
+});

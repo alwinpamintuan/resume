@@ -36,11 +36,11 @@ test('local links, anchors, and assets resolve', async ({ page, request }) => {
 });
 
 test('responsive layouts and screenshots', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 960 });
     for (const route of routes.filter((route) => route !== sitePath('404.html'))) {
       await page.goto(route); await page.evaluate(() => document.fonts.ready);
-      await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} at ${width}px`).toBeTruthy();
       await page.screenshot({ path: `work/screenshots/${route === sitePath() ? 'home' : route.replaceAll('/', '')}-${width}.png`, fullPage: true });
     }
@@ -50,7 +50,7 @@ test('responsive layouts and screenshots', async ({ page }) => {
 test('content remains visible without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage(); await page.goto(`http://127.0.0.1:4322${sitePath()}`);
-  await expect(page.locator('#intro-title')).toHaveText(content.profile.name);
+  await expect(page.locator('#intro-title')).toHaveText(content.profile.summary);
   await expect(page.getByRole('link', { name: 'Download résumé' })).toBeVisible();
   const showcase = content.work.find((work) => work.visible && work.slug);
   if (showcase) { await page.goto(`http://127.0.0.1:4322${sitePath(`${showcase.slug}/`)}`); await expect(page.locator('h1')).toHaveText(showcase.title); }
@@ -82,6 +82,7 @@ test('long names and titles stay within narrow layouts', async ({ page }) => {
 test('home printing uses conventional résumé', async ({ page }) => {
   await page.goto(sitePath()); await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.hero')).toBeHidden();
+  await expect(page.locator('.site-footer')).toBeHidden();
   await expect(page.locator('.print-only .resume-document')).toBeVisible();
 });
 

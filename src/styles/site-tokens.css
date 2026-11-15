@@ -1,0 +1,50 @@
+/* Shared verbatim with the companion résumé. */
+:root {
+  color-scheme: light;
+  --paper: #f3f2ec;
+  --ink: #20201e;
+  --muted: #62625b;
+  --line: #d5d4cb;
+  --surface-muted: #e8e7df;
+  --accent: #244fce;
+  --accent-wash: #e2e8f8;
+  --sans: 'Inter', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-press: 140ms;
+  --motion-settle: 260ms;
+  --motion-menu: 180ms;
+  --spring: linear(0, .165 8%, .484 20%, .775 35%, .95 52%, 1.015 70%, 1.012 85%, 1);
+  --site-header-height: 76px;
+  --shell-width: 1120px;
+  --gutter: clamp(20px, 5vw, 64px);
+  font-family: var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  scrollbar-color: var(--line) var(--paper);
+  caret-color: var(--accent);
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #20201e;
+  --ink: #eeede6;
+  --muted: #b6b5ad;
+  --line: #45453f;
+  --surface-muted: #32322d;
+  --accent: #9bb8ff;
+  --accent-wash: #2b354b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #20201e;
+    --ink: #eeede6;
+    --muted: #b6b5ad;
+    --line: #45453f;
+    --surface-muted: #32322d;
+    --accent: #9bb8ff;
+    --accent-wash: #2b354b;
+  }
+}
+::selection { background: var(--accent); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }

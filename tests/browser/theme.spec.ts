@@ -15,7 +15,7 @@ test('dark mode follows the system and keeps all routes accessible', async ({ pa
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     expect(results.violations, route).toEqual([]);
   }
-  for (const width of [375, 1440]) {
+  for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 960 });
     await page.goto(sitePath());
     const skill = page.locator('.skill-trigger').first();
@@ -73,11 +73,13 @@ test('dark preference works without JavaScript and printing remains white', asyn
   await fallback.goto(`http://127.0.0.1:4322${sitePath()}`);
   expect(await fallback.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(32, 32, 30)');
   await expect(fallback.getByRole('switch', { name: 'Dark mode' })).toHaveCount(0);
+  expect(await fallback.evaluate(() => getComputedStyle(document.body).backgroundImage)).toBe('none');
   await context.close();
   await page.goto(sitePath('resume/'));
   expect(await page.locator('.resume-document').evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(255, 255, 255)');
   await page.emulateMedia({ media: 'print' });
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundImage)).toBe('none');
   expect(await page.locator('.resume-document').evaluate((element) => getComputedStyle(element).color)).toBe('rgb(17, 17, 17)');
 });
 
