@@ -54,9 +54,13 @@ const update = (): void => {
   header.dataset.scrolled = String(scrollY > 8);
   const maximumY = Math.max(0, document.documentElement.scrollHeight - innerHeight);
   const remainingScroll = Math.max(0, maximumY - scrollY);
-  // As scrolling runs out, follow the visible content toward the viewport
-  // center. Forcing the final item would skip short sections above it.
-  const readingLine = Math.max(header.getBoundingClientRect().bottom + 24, innerHeight / 2 - remainingScroll);
+  // Near the end, follow the center of the visible section content, excluding
+  // the project banner and footer. Short sections should not displace a larger
+  // section that still occupies most of the reading area.
+  const headerBottom = header.getBoundingClientRect().bottom;
+  const contentBottom = destinations.at(-1)?.getBoundingClientRect().bottom ?? innerHeight;
+  const visibleCenter = Math.min(innerHeight / 2, (headerBottom + contentBottom) / 2);
+  const readingLine = Math.max(headerBottom + 24, visibleCenter - remainingScroll);
   let current = -1;
   destinations.forEach((section, index) => {
     if (section && section.getBoundingClientRect().top <= readingLine + 1) current = index;

@@ -38,12 +38,12 @@ html { scrollbar-gutter: stable; }
   .theme-toggle:active { transform: none; }
 }
 
-.site-bridge { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-block: 32px; padding: 24px 28px; border-radius: 12px; background: var(--surface-muted); color: var(--ink); text-decoration: none; touch-action: manipulation; transition: transform var(--motion-settle) var(--spring), background-color var(--motion-press) ease; }
-.site-bridge h2 { font: 500 26px/1.2 var(--sans); letter-spacing: -.03em; }
+.site-bridge { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-block: 32px; padding: 20px 28px; border-radius: 12px; background: var(--surface-muted); color: var(--ink); text-decoration: none; touch-action: manipulation; transition: transform var(--motion-settle) var(--spring), background-color var(--motion-press) ease; }
+.site-bridge h2 { font: 500 22px/1.2 var(--sans); letter-spacing: -.03em; }
 .site-bridge p { margin-top: 8px; color: var(--muted); font: 400 16px/1.6 var(--sans); }
 .bridge-action { display: inline-flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 48px; padding: 12px 18px; border-radius: 5px; background: var(--ink); color: var(--paper); font: 500 16px/1.5 var(--sans); white-space: nowrap; }
 .bridge-action svg { width: 18px; height: 18px; }
-@media (max-width: 600px) { .site-bridge { flex-direction: column; align-items: stretch; gap: 20px; padding: 24px; } }
+@media (max-width: 600px) { .site-bridge { flex-direction: column; align-items: stretch; gap: 20px; padding: 20px 24px; } }
 
 :is(.primary-action, .button, .theme-toggle, .page-menu > summary) {
   transition: transform var(--motion-settle) var(--ease), background-color var(--motion-press) ease, box-shadow var(--motion-press) ease;

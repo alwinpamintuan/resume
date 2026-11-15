@@ -94,7 +94,7 @@ The companion [Projects hub](https://alwinpamintuan.github.io/) is maintained in
 
 Mirror `src/styles/site-tokens.css`, `site-chrome.css`, `site-transitions.css`, `src/scripts/site-navigation.ts`, and `src/components/SiteFooter.astro` between repositories. Keep page-specific layout and conventional document/print styles separate.
 
-The sticky header links the owner's name home and provides navigation to populated page sections. Compact screens use a native disclosure menu. Anchor offsets and active-section tracking account for the header and short sections near the document end. The footer contains profile/contact tiles and Back to top. Credential actions align within each grid row.
+The sticky header links the owner's name home and provides navigation to populated page sections. Compact screens use a native disclosure menu. Anchor offsets and active-section tracking account for the header and short sections near the document end. The footer contains profile/contact tiles and Back to top. Credential actions align within each grid row. Screen titles use 36px (32px on mobile), with 16px body text and metadata at least 13px. Major sections use 24px/28px vertical padding; the desktop label column is 160px with a 32px gap. Keep conventional document typography independent of the screen scale.
 
 The `personal-site:theme` preference persists across both sites, including migration from `project-index:theme`. Without an explicit preference, follow system changes. Blocked storage permits a choice for the current page. Without JavaScript, system theming and native navigation still work. Reduced motion removes physical feedback and page transitions.
 
