@@ -324,11 +324,11 @@ Use `.astro` for markup/layout and `.ts` for shared logic. Avoid `any`; infer va
 
 ## Appearance
 
-The résumé site shares IO's design language: warm paper (`#f3f2ec`), monochrome ink, system monospace typography, fine rules, and generous whitespace. A small Résumé link in the header returns to the introduction. The introduction is open, sections use small sequential indices, and projects read as flat entries. The dark palette uses the same neutral tones. Keep these screen styles separate from the conventional white résumé document and print layout.
+The résumé and Projects hub share solid warm-paper and charcoal surfaces, self-hosted Inter for reading, IBM Plex Mono for metadata, and cobalt links and focus rings. The sticky header links the owner's name to the hub and navigates populated sections of the current page. Section dividers and aligned content columns support reading; contact tiles sit in the shared footer. See the [shared interface maintenance notes](../README.md#shared-personal-site) for files that must stay synchronized.
 
-Use the sun/moon toggle in the header to switch between **Light** and **Dark**. It supports clicks and the Space or Enter keys. Each page starts with your browser preference and follows changes while the page is open until you use the toggle. A manual choice applies only to the current page; navigating or reloading restores browser settings.
+The sun/moon control supports pointer, Space, and Enter activation. A manual choice persists under `personal-site:theme` across navigation and reloads; legacy `project-index:theme` preferences migrate on load. System-theme changes apply until a choice is saved. Storage restrictions still allow selection for the current page.
 
-Without JavaScript, the site follows the system theme and hides the manual control. Project screenshots retain their original colors. The résumé document view, PDF/Word exports, and printed résumé remain on white.
+Without JavaScript, CSS follows the system theme and the manual control stays hidden. Reduced motion disables physical feedback and page transitions. Screenshots retain their original colors. Document views and PDF/Word/print output remain conventional and white.
 
 ## Validation and verification
 

@@ -4,7 +4,7 @@
 
 **Engineering dependable data.**
 
-My personal résumé: experience, technical skills, certifications, and education. Built with Astro and TypeScript, with a visual language shared with [IO](https://alwinpamintuan.github.io/io/): warm paper, monochrome typography, fine rules, and generous whitespace.
+My personal résumé: experience, technical skills, certifications, and education. Built with Astro and TypeScript, with a visual language shared with the [Projects hub](https://alwinpamintuan.github.io/): warm paper, charcoal dark mode, readable Inter typography, IBM Plex Mono metadata, and fine rules.
 
 **[View résumé](https://alwinpamintuan.github.io/resume/)** · [Download PDF](https://alwinpamintuan.github.io/resume/downloads/Resume_JohnAlwinPamintuan_DataEngineer.pdf) · [Download Word](https://alwinpamintuan.github.io/resume/downloads/Resume_JohnAlwinPamintuan_DataEngineer.docx)
 
@@ -87,3 +87,15 @@ See [GitHub's custom workflow documentation](https://docs.github.com/en/pages/ge
 For bugs, include the affected URL, browser, and steps to reproduce in an [issue](https://github.com/alwinpamintuan/resume/issues). Pull requests should describe the behavior change and relevant verification.
 
 This is a personal résumé. Replace personal details and credential links before adapting it. No open-source license has been granted for this repository.
+
+## Shared personal site
+
+The companion [Projects hub](https://alwinpamintuan.github.io/) is maintained in `../alwinpamintuan.github.io`. Both sites use self-hosted Inter, IBM Plex Mono, solid paper/charcoal surfaces, and cobalt focus and link colors. Font licenses are in `public/fonts/`.
+
+Mirror `src/styles/site-tokens.css`, `site-chrome.css`, `site-transitions.css`, `src/scripts/site-navigation.ts`, and `src/components/SiteFooter.astro` between repositories. Keep page-specific layout and conventional document/print styles separate.
+
+The sticky header links the owner's name home and provides navigation to populated page sections. Compact screens use a native disclosure menu. Anchor offsets and active-section tracking account for the header and short sections near the document end. The footer contains profile/contact tiles and Back to top. Credential actions align within each grid row.
+
+The `personal-site:theme` preference persists across both sites, including migration from `project-index:theme`. Without an explicit preference, follow system changes. Blocked storage permits a choice for the current page. Without JavaScript, system theming and native navigation still work. Reduced motion removes physical feedback and page transitions.
+
+For combined local review, build both repositories and run `npm run preview:both` from the Projects hub. Open [Projects](http://127.0.0.1:4323/) or [Résumé](http://127.0.0.1:4323/resume/). The companion build defaults to `../work/dist`; override it with `COMPANION_DIST`. Use separate Astro dev servers for live editing.
