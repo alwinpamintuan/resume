@@ -1,3 +1,4 @@
+import { resolve, join, sep } from 'node:path';
 import { mkdir, writeFile, rm, rename } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ExternalHyperlink } from 'docx';
@@ -14,12 +15,16 @@ function profileHtml(data: Resume, profile: ExportProfile): string {
   return `${data.sample ? '<p class="document-sample">SAMPLE RESUME - Fictional career details and results. Not for job applications.</p>' : ''}<h1>${escape(data.profile.name)}</h1><p class="document-title">${escape(data.profile.title)}</p><p class="document-contact">${escape(data.profile.email)}${data.profile.location ? ` | ${escape(data.profile.location)}` : ''}</p><p class="document-contact">${data.profile.links.map((link) => `<a href="${escape(link.url)}">${escape(link.url)}</a>`).join(' | ')}</p><p class="document-summary">${escape(data.profile.summary)}</p>${resumeBlocks(data, profile).map((block) => `<section class="document-section"><h2>${escape(block.heading)}</h2>${block.paragraphs.map((p) => `<p class="${p.bullet ? 'document-bullet' : p.strong ? 'document-strong' : ''}">${p.bullet ? '• ' : ''}${p.href ? `<a href="${escape(p.href)}">${escape(p.text)}</a>` : escape(p.text)}</p>`).join('')}</section>`).join('')}`;
 }
 
-const staging = 'dist/.exports-temp';
+const distDir = resolve(process.argv.find((arg) => arg.startsWith('--dist-dir='))?.slice('--dist-dir='.length) ?? 'dist');
+const staging = join(distDir, '.exports-temp');
+const downloads = join(distDir, 'downloads');
+// All recursive removals are fixed children of the explicitly selected artifact root.
+if (![staging, downloads].every((path) => path.startsWith(distDir + sep))) throw new Error('Invalid export directory');
 await rm(staging, { recursive: true, force: true });
 await mkdir(staging, { recursive: true });
 // A full export replaces downloads atomically; targeted exports update only their files.
-if (!requested) await rm('dist/downloads', { recursive: true, force: true });
-const server = await serveDist();
+if (!requested) await rm(downloads, { recursive: true, force: true });
+const server = await serveDist(0, distDir);
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
 try {
   browser = await chromium.launch();
@@ -58,12 +63,12 @@ try {
     await writeFile(`${staging}/${filename}.docx`, await Packer.toBuffer(doc));
     console.log(`Exported ${filename}.pdf and .docx`);
   }
-  if (!requested) await rename(staging, 'dist/downloads');
+  if (!requested) await rename(staging, downloads);
   else {
-    await mkdir('dist/downloads', { recursive: true });
+    await mkdir(downloads, { recursive: true });
     const profile = profiles[0]!;
     const filename = `${data.profile.documentName}${profile.id === data.exports.default ? '' : `-${profile.id}`}`;
-    for (const ext of ['pdf', 'docx']) await rename(`${staging}/${filename}.${ext}`, `dist/downloads/${filename}.${ext}`);
+    for (const ext of ['pdf', 'docx']) await rename(`${staging}/${filename}.${ext}`, `${downloads}/${filename}.${ext}`);
   }
 } finally {
   await browser?.close();

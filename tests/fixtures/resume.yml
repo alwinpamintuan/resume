@@ -58,7 +58,7 @@ experience:
           - id: ingestion-freshness
             text: Replaced nightly ingestion with incremental loads, improving data freshness from 24 hours to six hours.
           - id: ingestion-recovery
-            skills: [Python, Airflow]
+            skills: [" PYTHON ", python, Airflow]
             text: Introduced idempotent writes, source-level validation, and replayable backfills to simplify incident recovery.
   - id: clearwater
     company: Clearwater Systems
@@ -143,6 +143,8 @@ principles:
 education:
   - institution: Example University
     qualification: Bachelor of Science in Computer Science
+    honors: Sample academic distinction
+    highlights: [Student organization leadership]
     year: "2021"
 
 exports:

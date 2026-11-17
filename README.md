@@ -47,15 +47,14 @@ See the [content and maintenance guide](docs/content-guide.md) for the complete 
 ## Verification
 
 ```sh
-npm test
 npm run build
-npm run test:e2e
+npm test
 npm run audit
 ```
 
-The build includes Astro, TypeScript, and YAML checks, then creates the static site and résumé exports. Browser tests check accessibility, routes, assets, keyboard behavior, themes, responsive layouts, and document content. Lighthouse checks performance, accessibility, best practices, and SEO.
+The build includes Astro, TypeScript, and YAML checks, then creates the static site and résumé exports. `npm test` runs the functional suite (also available as `npm run test:e2e`), including real CLI validation, browser interactions, and downloaded PDF/Word content. Sample and visibility builds generate their own documents without changing `dist/`. Browser tests check accessibility, routes, assets, keyboard behavior, themes, responsive usability, and print content. Lighthouse checks performance, accessibility, best practices, and SEO.
 
-Browser tests use port 4322. Stop any preview using that port before running them. Generated output (`dist/`), screenshots, reports, and temporary files are excluded from Git.
+Browser tests use port 4322. Stop any preview using that port before running them. Generated output (`dist/`), reports, and temporary files are excluded from Git. Screenshots are captured only on failure.
 
 ## Project structure
 
@@ -67,14 +66,14 @@ Browser tests use port 4322. Stop any preview using that port before running the
 | `src/pages/` | Homepage, print view, optional showcases, and metadata |
 | `src/styles/global.css` | Screen, theme, responsive, and print styles |
 | `scripts/` | Validation, export generation, fixture server, and audits |
-| `tests/` | Content and browser checks |
+| `tests/` | Functional CLI, browser, and document integration checks |
 | `.github/workflows/deploy.yml` | Validation and GitHub Pages deployment |
 
 ## Deployment
 
 The site publishes at **https://alwinpamintuan.github.io/resume/**. GitHub Pages uses **GitHub Actions** as its build source.
 
-Pull requests to `main` run validation and browser tests. Pushes to `main` build the site, generate the PDF and Word files, verify the result, and deploy the `dist/` artifact. A manually dispatched run deploys only when run from `main`.
+Pull requests to `main` build this candidate and the Projects hub repository's `main`, record both commit IDs, and run this suite plus the canonical combined-site journey. Only this repository's production artifact is deployed. Pushes to `main` build the site, generate the PDF and Word files, verify the result, and deploy the `dist/` artifact. A manually dispatched run deploys only when run from `main`.
 
 The workflow pins official actions to commit hashes, grants write permissions only to the deploy job, and uses the `github-pages` environment. Dependabot checks npm dependencies and GitHub Actions monthly.
 
@@ -99,3 +98,9 @@ The sticky header links the owner's name home and provides navigation to populat
 The `personal-site:theme` preference persists across both sites, including migration from `project-index:theme`. Without an explicit preference, follow system changes. Blocked storage permits a choice for the current page. Without JavaScript, system theming and native navigation still work. Reduced motion removes physical feedback and page transitions.
 
 For combined local review, build both repositories and run `npm run preview:both` from the Projects hub. Open [Projects](http://127.0.0.1:4323/) or [Résumé](http://127.0.0.1:4323/resume/). The companion build defaults to `../work/dist`; override it with `COMPANION_DIST`. Use separate Astro dev servers for live editing.
+
+## Test policy
+
+Every test must identify a concrete production failure it prevents. Use real builds, YAML inputs, browser interactions, CLI subprocesses, and generated documents with independent expected results. No unit tests, mocked responses/browser APIs, cosmetic CSS assertions, DOM-fabricated scenarios, or copy snapshots. External URLs are native-link contracts; third-party availability is outside CI. Accessibility and functional reflow remain build gates.
+
+Build both repositories, then run `npm run test:integration` here to delegate to the hub's canonical journey. The default hub checkout is `../alwinpamintuan.github.io`; set `HUB_DIR` if it is elsewhere. `COMPANION_DIST` defaults to this repository's `dist/`. Missing or outdated checkouts/builds fail instead of skipping. Both workflows run this journey before deployment. Merge the hub integration command before the résumé workflow change.

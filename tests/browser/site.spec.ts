@@ -1,115 +1,82 @@
 import { test, expect } from '@playwright/test';
-import { sitePath } from '../../src/lib/urls.ts';
 import { AxeBuilder } from '@axe-core/playwright';
-import { readFileSync } from 'node:fs';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import JSZip from 'jszip';
-import { loadContent } from '../../src/lib/content.ts';
+import { content, routes } from '../support/content.ts';
 
-const content = loadContent();
-const routes = ['/', '/resume/', ...content.work.filter((w) => w.visible && w.slug).map((w) => `/${w.slug}/`), '/404.html'].map((path) => sitePath(path));
-
-for (const route of routes) test(`route and accessibility: ${route}`, async ({ page }) => {
+// Prevent broken deployed routes, assets, anchors, and local downloads.
+test('published pages and their local destinations resolve without script errors', async ({ page, request }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(route);
-  await expect(page.locator('h1').first()).toBeVisible();
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-  expect(results.violations).toEqual([]); expect(errors).toEqual([]);
-});
-
-test('local links, anchors, and assets resolve', async ({ page, request }) => {
   for (const route of routes) {
-    await page.goto(route);
-    const links = await page.locator('a[href]').evaluateAll((elements) => elements.map((element) => element.getAttribute('href')!));
-    for (const link of links) {
-      if (link.startsWith('#')) { expect(await page.locator(`[id="${link.slice(1)}"]`).count(), link).toBeGreaterThan(0); }
-      else if (link.startsWith('/')) {
-        const url = new URL(link, 'http://127.0.0.1:4322');
-        expect((await request.get(url.pathname)).ok(), link).toBeTruthy();
-        if (url.hash) { await page.goto(link); expect(await page.locator(`[id="${url.hash.slice(1)}"]`).count(), link).toBeGreaterThan(0); await page.goto(route); }
+    expect((await page.goto(route))?.ok(), route).toBeTruthy();
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+    const destinations = await page.locator('a[href],img[src],link[rel="stylesheet"],script[src]').evaluateAll((elements) => elements.map((element) => element.getAttribute('src') ?? element.getAttribute('href')!));
+    for (const destination of new Set(destinations)) {
+      const url = new URL(destination, page.url());
+      if (url.origin !== new URL(page.url()).origin) continue;
+      if (url.pathname !== route || !url.hash) expect((await request.get(url.pathname)).ok(), destination).toBeTruthy();
+      if (url.hash) {
+        await page.goto(url.pathname + url.hash);
+        await expect(page.locator(`[id="${decodeURIComponent(url.hash.slice(1))}"]`), destination).toHaveCount(1);
+        await page.goto(route);
       }
     }
-    const assets = await page.locator('img[src],link[rel="stylesheet"],script[src]').evaluateAll((elements) => elements.map((el) => el.getAttribute('src') ?? el.getAttribute('href')!));
-    for (const asset of assets) expect((await request.get(asset)).ok(), asset).toBeTruthy();
   }
+  await page.goto('/resume/');
+  await expect(page.getByRole('link', { name: 'Explore projects', exact: true })).toHaveAttribute('href', 'https://alwinpamintuan.github.io/');
+  await expect(page.getByRole('link', { name: content.profile.name, exact: true })).toHaveAttribute('href', 'https://alwinpamintuan.github.io/');
+  for (const link of content.profile.links) await expect(page.getByRole('link', { name: link.label, exact: true })).toHaveAttribute('href', link.url);
+  for (const credential of content.certifications) if (credential.credentialUrl) {
+    await expect(page.getByRole('link', { name: `View credential for ${credential.name}` })).toHaveAttribute('href', credential.credentialUrl);
+  }
+  expect(errors).toEqual([]);
 });
 
-test('responsive layouts and screenshots', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  for (const width of [375, 768, 1440]) {
-    await page.setViewportSize({ width, height: 960 });
-    for (const route of routes.filter((route) => route !== sitePath('404.html'))) {
-      await page.goto(route); await page.evaluate(() => document.fonts.ready);
+// Prevent inaccessible or horizontally clipped real content on supported pages.
+for (const colorScheme of ['light', 'dark'] as const) test(`published pages remain accessible and reflow in ${colorScheme} mode`, async ({ page }) => {
+  await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+  for (const route of routes) {
+    for (const [width, height] of [[375, 960], [768, 960], [1440, 960], [640, 450]] as const) {
+      await page.setViewportSize({ width, height });
+      await page.goto(route);
+      await page.evaluate(() => document.fonts.ready);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} at ${width}px`).toBeTruthy();
-      await page.screenshot({ path: `work/screenshots/${route === sitePath() ? 'home' : route.replaceAll('/', '')}-${width}.png`, fullPage: true });
+      // Audit both mobile and desktop markup; intermediate widths still check reflow.
+      if (width === 375 || width === 1440) {
+        const audit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        expect(audit.violations, route).toEqual([]);
+      }
     }
   }
 });
 
-test('content remains visible without JavaScript', async ({ browser }) => {
+// Prevent résumé content/downloads disappearing when JavaScript cannot run.
+test('career details and downloads remain available without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage(); await page.goto(`http://127.0.0.1:4322${sitePath()}`);
-  await expect(page.locator('#intro-title')).toHaveText(content.profile.summary);
-  await expect(page.getByRole('link', { name: 'Download résumé' })).toBeVisible();
-  const showcase = content.work.find((work) => work.visible && work.slug);
-  if (showcase) { await page.goto(`http://127.0.0.1:4322${sitePath(`${showcase.slug}/`)}`); await expect(page.locator('h1')).toHaveText(showcase.title); }
-  await context.close();
+  try {
+    const page = await context.newPage();
+    await page.goto('http://127.0.0.1:4322/resume/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(content.profile.summary);
+    for (const job of content.experience) await expect(page.getByRole('main')).toContainText(job.company);
+    await expect(page.getByRole('link', { name: 'Download résumé' })).toBeVisible();
+    await page.getByRole('link', { name: 'View résumé', exact: true }).click();
+    await expect(page.getByRole('article')).toContainText(content.profile.name);
+  } finally { await context.close(); }
 });
 
-test('keyboard skip link and reduced motion', async ({ page }) => {
-  await page.goto(sitePath()); await page.keyboard.press('Tab');
+// Prevent keyboard visitors being trapped in the header and printouts losing career content.
+test('skip link enters the content and printing exposes a conventional résumé', async ({ page }) => {
+  await page.goto('/resume/');
+  await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
-  expect(await page.locator('#intro-title').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
-});
-
-test('long names and titles stay within narrow layouts', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 850 });
-  await page.goto(sitePath());
-  await page.locator('.hero h1 span').last().evaluate((element) => { element.textContent = 'Averylongprofessionalsurnamethatmustwrap'; });
-  await page.locator('.role-heading h4').first().evaluate((element) => { element.textContent = 'Senior Data Platform and Infrastructure Engineering Specialist'; });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  const showcase = content.work.find((work) => work.visible && work.slug);
-  if (showcase) {
-    await page.goto(sitePath(`${showcase.slug}/`));
-    await page.locator('h1').evaluate((element) => { element.textContent = 'A comprehensive schema inspection and comparison utility'; });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  }
-});
-
-test('home printing uses conventional résumé', async ({ page }) => {
-  await page.goto(sitePath()); await page.emulateMedia({ media: 'print' });
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('main')).toBeInViewport();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Download résumé' })).toBeFocused();
+  await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.hero')).toBeHidden();
-  await expect(page.locator('.site-footer')).toBeHidden();
-  await expect(page.locator('.print-only .resume-document')).toBeVisible();
-});
-
-test('exports contain readable résumé text in order', async () => {
-  for (const profile of content.exports.profiles) {
-    const name = `${content.profile.documentName}${profile.id === content.exports.default ? '' : `-${profile.id}`}`;
-    const loadingTask = getDocument({ data: new Uint8Array(readFileSync(`dist/downloads/${name}.pdf`)), useSystemFonts: true });
-    const pdf = await loadingTask.promise;
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) text += (await (await pdf.getPage(i)).getTextContent()).items.map((item) => 'str' in item ? item.str : '').join(' ');
-    expect(text.includes('SAMPLE RESUME')).toBe(content.sample); expect(text).toContain(content.profile.name);
-    expect(text.indexOf('Professional Experience')).toBeLessThan(text.indexOf('Technical Skills'));
-    if (content.certifications.length && content.sections.some((section) => section.id === 'certifications' && section.visible)) {
-      expect(text.indexOf('Technical Skills')).toBeLessThan(text.indexOf('Certifications'));
-      expect(text.indexOf('Certifications')).toBeLessThan(text.indexOf('Education'));
-      for (const credential of content.certifications) expect(text).toContain(credential.name);
-    }
-    for (const work of content.work.filter((work) => work.placement === 'other')) expect(text).not.toContain(work.title);
-    expect(pdf.numPages).toBeLessThanOrEqual(2);
-    await loadingTask.destroy();
-    const zip = await JSZip.loadAsync(readFileSync(`dist/downloads/${name}.docx`));
-    const xml = await zip.file('word/document.xml')!.async('text');
-    expect(xml.includes('SAMPLE RESUME')).toBe(content.sample); expect(xml).toContain('Professional Experience'); expect(xml).not.toContain('<w:tbl>');
-    if (content.certifications.length && content.sections.some((section) => section.id === 'certifications' && section.visible)) {
-      expect(xml.indexOf('Technical Skills')).toBeLessThan(xml.indexOf('Certifications'));
-      expect(xml.indexOf('Certifications')).toBeLessThan(xml.indexOf('Education'));
-      for (const credential of content.certifications) expect(xml).toContain(credential.name);
-    }
-  }
+  await expect(page.getByRole('contentinfo')).toBeHidden();
+  const document = page.getByRole('article');
+  await expect(document).toBeVisible();
+  await expect(document).toContainText(content.profile.name);
+  for (const job of content.experience) await expect(document).toContainText(job.company);
 });

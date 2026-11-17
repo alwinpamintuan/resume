@@ -13,9 +13,10 @@
     "build:site": "astro build",
     "export": "tsx scripts/export.ts",
     "preview": "astro preview",
-    "test": "tsx --test --test-isolation=none tests/content.test.ts",
+    "test": "npm run test:e2e",
     "test:e2e": "tsx scripts/build-test-fixture.ts && playwright test",
-    "audit": "tsx scripts/audit.ts"
+    "audit": "tsx scripts/audit.ts",
+    "test:integration": "node scripts/test-integration.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

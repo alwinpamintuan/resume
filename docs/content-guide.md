@@ -45,7 +45,6 @@ Open the URL printed by Astro, normally `http://localhost:4321`. YAML and templa
 To preview the complete site, including downloads:
 
 ```sh
-npm test
 npm run build
 npm run preview
 ```
@@ -64,7 +63,7 @@ For bash or zsh: `export ASTRO_TELEMETRY_DISABLED=1`.
 | --- | --- |
 | `npm run dev` | Start the development server. |
 | `npm run check` | Check Astro and TypeScript, validate YAML and screenshot paths. |
-| `npm test` | Run content validation and document-model tests. |
+| `npm test` | Run functional CLI, browser, and generated-document checks after a complete build. |
 | `npm run build` | Validate, build HTML/assets, and generate all résumé profiles. |
 | `npm run build:site` | Generate the site only; downloads are not produced. |
 | `npm run export` | Generate all documents against an existing site build. |
@@ -89,7 +88,7 @@ public/
   favicon.svg
   images/                 Project screenshots and illustrations
 scripts/                  Content checks, export generation, local audits
-tests/                    Content tests and browser verification
+tests/                    Functional integration and browser verification
 .github/workflows/        Validation and Pages deployment
 dist/                     Generated website and downloads; ignored by Git
 work/                     Screenshots and audit reports; ignored by Git
@@ -317,8 +316,8 @@ To add a content field:
 1. Add the field to the Zod schema; make it optional if old content should still work.
 2. Add an example to the YAML file.
 3. Render it in the relevant component. For document content, update `resumeBlocks` so the print view and Word exporter receive it together.
-4. Add a validation test if the field introduces a constraint.
-5. Run `npm run check`, `npm test`, and `npm run build`; update this field reference.
+4. Add a real CLI, rendered-page, or generated-document regression test only if breaking the field can cause a concrete production failure. No unit tests or mocks.
+5. Run `npm run build` and then `npm test`; update this field reference.
 
 Use `.astro` for markup/layout and `.ts` for shared logic. Avoid `any`; infer validated content types or define a small explicit type for an interface. TypeScript is pinned to the 6.0 series supported by the installed Astro checker.
 
@@ -334,19 +333,18 @@ Without JavaScript, CSS follows the system theme and the manual control stays hi
 
 ```sh
 npm run check
-npm test
 npm run build
-npm run test:e2e
+npm test
 npm run audit
 ```
 
-Browser checks use port **4322** and start their own static test server, independently of Astro preview. Close another server using that port before running them. Tests check generated pages, links, anchors, accessibility, downloads, PDF text, Word structure, mobile/tablet/desktop widths, printing, keyboard access, and reduced motion.
+Browser checks use port **4322** and start their own static test server, independently of Astro preview. Close another server using that port before running them. Tests check generated pages, links, anchors, accessibility, downloads, PDF text, Word text and credential links, mobile/tablet/desktop widths, printing, keyboard access, and menu usability when motion preferences change.
 
-`npm run test:e2e` also builds sample YAML from `tests/fixtures/resume.yml` into `work/fixture-site` to test evidence interactions without changing personal content. The build uses `PORTFOLIO_CONTENT_FILE` only in its child process; normal builds read `src/content/resume.yml`. Evidence tests cover panel switching, keyboard dismissal, mobile navigation, accessibility, and the fallback without JavaScript.
+`npm test` (also `npm run test:e2e`) builds sample YAML into `work/fixture-site` and a derived hidden-section/work variant into `work/visibility-site`. Both use the real exporter to generate PDF and DOCX files. Personal content and deployable `dist/` are unchanged. The build uses `PORTFOLIO_CONTENT_FILE` only in its child process; normal builds read `src/content/resume.yml`. Evidence tests cover panel switching, keyboard dismissal, mobile navigation, accessibility, and the fallback without JavaScript.
 
-Responsive screenshots are written to `work/screenshots/`. Lighthouse reports are written to `work/audits/`. Audit scores target at least 95 in each category; sample mode intentionally affects SEO through `noindex`. The audit excludes that expected SEO effect while sample mode is enabled. Audits are local checks, not a guarantee of every user's field performance.
+Failure screenshots and traces are written to `test-results/`. Lighthouse reports are written to `work/audits/`. Audit scores target at least 95 in each category; sample mode intentionally affects SEO through `noindex`. The audit excludes that expected SEO effect while sample mode is enabled. Audits are local checks, not a guarantee of every user's field performance.
 
-The automated Word check inspects OOXML structure and content; it does not render Microsoft Word's page layout. Open generated DOCX files in Word or LibreOffice to review pagination after content changes. PDF rendering and text checks are separate from Word layout verification.
+The automated Word check reads text and credential relationships from the downloaded DOCX; it does not render Microsoft Word's page layout. Open generated DOCX files in Word or LibreOffice to review pagination after content changes. PDF rendering and text checks are separate from Word layout verification.
 
 Before publication:
 
@@ -418,3 +416,11 @@ Use `npm ci` for reproducible installation. Commit `package-lock.json` with depe
 Review links, résumé facts, downloads, and dependencies periodically. Keep sensitive employment information out of YAML and screenshots. No analytics, cookies, tracking services, or backend are configured.
 
 Useful references: [Astro documentation](https://docs.astro.build/), [Astro GitHub Pages guide](https://docs.astro.build/en/guides/deploy/github/), [GitHub Pages documentation](https://docs.github.com/en/pages), and [Playwright documentation](https://playwright.dev/docs/intro).
+
+### Functional test boundaries
+
+Tests must protect a concrete production behavior using real builds/files/subprocesses. No unit tests, mocked browser APIs or network responses, cosmetic CSS measurements, fabricated DOM content, or copy snapshots. Tests assert the rendered theme changes and persists, rather than exact palette values. Accessibility, keyboard operation, readable anchor targets, and real-content reflow remain gates. Screenshots are recorded only on failure.
+
+Use `npm run test:integration` after building both repositories for the required cross-site journey. `HUB_DIR` selects the hub checkout (default `../alwinpamintuan.github.io`); `COMPANION_DIST` selects this résumé build (default `dist/`). Both CI workflows test the triggering revision against the companion `main` and log both SHAs. Merge the hub integration command first.
+
+For isolated artifact generation, `npm run export -- --dist-dir=work/fixture-site` selects the static build and its downloads/staging directories; the default remains `dist`. Set `PORTFOLIO_CONTENT_FILE` to the matching YAML input in the export process. All profiles are exported unless `--profile=...` is supplied.
