@@ -1,13 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <style>
-    .tile { fill: #fafafa; }
-    .mark { fill: #111; }
+    .mark { fill: #20201e; }
     @media (prefers-color-scheme: dark) {
-      .tile { fill: #111; }
-      .mark { fill: #fafafa; }
+      .mark { fill: #eeede6; }
     }
   </style>
-  <rect class="tile" width="512" height="512" rx="102"/>
   <g class="mark" transform="translate(256 256) scale(1.4) translate(-256 -256)">
     <rect x="137" y="156" width="62" height="240" rx="8"/>
     <rect x="225" y="116" width="62" height="78" rx="8"/>
